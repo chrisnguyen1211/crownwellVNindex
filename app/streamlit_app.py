@@ -200,6 +200,9 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             management_ownership = scraped.get('management_ownership', np.nan)
             # Avg trading value (billion VND/day) if available from CafeF
             avg_trading_value = scraped.get('avg_trading_value', np.nan)
+            # Ensure est_val is defined before any checks
+            est_val = np.nan
+
             # Prefer CafeF market cap if available
             if pd.isna(market_val) and scraped and not pd.isna(scraped.get('market_cap')):
                 market_val = scraped.get('market_cap')
