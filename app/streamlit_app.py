@@ -13,7 +13,7 @@ from helpers import (
     compute_cagr,
     compute_roe_roa_from_statements,
 )
-# from web_scraper import VietnamStockDataScraper  # Disabled for now
+from web_scraper import VietnamStockDataScraper
 
 
 st.set_page_config(page_title="VN Stock Screener", layout="wide")
@@ -79,6 +79,9 @@ scan = st.button("Scan now")
 if 'has_scanned' not in st.session_state:
     st.session_state['has_scanned'] = True
     scan = True
+
+# Initialize CafeF scraper (single session)
+_scraper = VietnamStockDataScraper()
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -184,26 +187,15 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                 # Revenue is already in billions VND from vnstock API
                 market_cap = rev_series.iloc[-1] * revenue_multiple
             
-            # Free float estimation (typical range for Vietnamese stocks)
-            free_float = np.random.uniform(0.15, 0.85) if np.random.random() > 0.3 else np.nan
-            
-            # Foreign ownership estimation (typical range)
-            foreign_ownership = np.random.uniform(0.05, 0.49) if np.random.random() > 0.4 else np.nan
-            
-            # Management ownership estimation (typical range)
-            management_ownership = np.random.uniform(0.10, 0.60) if np.random.random() > 0.3 else np.nan
-            
-            # Trading value estimation based on market cap
-            avg_trading_value = np.nan
-            if pd.notna(market_cap) and market_cap > 0:
-                # Typical trading volume is 0.5-5% of market cap per day
-                avg_trading_value = market_cap * np.random.uniform(0.005, 0.05)
-            elif not latest.empty and 'price_to_earning' in latest.columns:
-                # Fallback: estimate based on P/E ratio
-                pe_ratio = latest['price_to_earning'].iloc[0]
-                if pd.notna(pe_ratio) and pe_ratio > 0:
-                    # Rough estimate: higher P/E = more trading
-                    avg_trading_value = np.random.uniform(0.5, 10.0) * (pe_ratio / 20.0)
+            # Prefer real data from CafeF/Vietstock scraper
+            scraped = _scraper.get_stock_overview(sym)
+
+            free_float = scraped.get('free_float', np.nan)
+            foreign_ownership = scraped.get('foreign_ownership', np.nan)
+            management_ownership = scraped.get('management_ownership', np.nan)
+
+            # Avg trading value (billion VND/day) if available from CafeF
+            avg_trading_value = scraped.get('avg_trading_value', np.nan)
             
             # Calculate Estimated Valuation (Est Val) - Intrinsic value based on fundamentals
             est_val = np.nan
