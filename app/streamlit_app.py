@@ -83,6 +83,13 @@ if 'has_scanned' not in st.session_state:
 # Initialize CafeF scraper (single session)
 _scraper = VietnamStockDataScraper()
 
+# Clear cached metrics when Scan is pressed
+if scan:
+    try:
+        st.cache_data.clear()
+    except Exception:
+        pass
+
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
@@ -226,10 +233,10 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Ensure est_val is defined before any checks
             est_val = np.nan
 
-            # Prefer CafeF market cap if available and reasonable (filter obvious placeholders)
-            if pd.isna(market_val) and scraped:
+            # Prefer CafeF market cap if available; do NOT override when present
+            if scraped:
                 mc = scraped.get('market_cap')
-                if pd.notna(mc) and mc > 0 and mc != 1000:  # ignore suspicious flat 1000B
+                if pd.notna(mc) and mc > 0 and mc != 1000:
                     market_val = mc
 
             # Try fetching latest close price from TCBS public API
@@ -287,7 +294,7 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     # Heuristic: approximate shares from revenue and an assumed revenue/share ratio (~1e3 VND/share)
                     shares_outstanding = (rev_series.iloc[-1] * 1_000_000_000) / max(eps, 1)
 
-            # Calculate market value = current price * shares outstanding (fallback)
+            # Calculate market value = current price * shares outstanding (fallback only when no CafeF value)
             if pd.isna(market_val) and pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
 
