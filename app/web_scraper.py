@@ -157,6 +157,43 @@ class VietnamStockDataScraper:
             if symbol in ['FPT', 'MWG', 'VCB']:
                 logger.info(f"CafeF page content for {symbol}: {soup.get_text()[:500]}...")
             
+            # CafeF common fields (explicit labels)
+            # 1) Market cap (tỷ đồng)
+            mc_text = self._extract_text_by_label(soup, "Vốn hóa thị trường (tỷ đồng)")
+            if mc_text:
+                mc_val = self._parse_market_cap(mc_text)
+                if mc_val is not None:
+                    data['market_cap'] = mc_val
+
+            # 2) Foreign ownership (%)
+            fo_text = self._extract_text_by_label(soup, "Tỷ lệ sở hữu nước ngoài")
+            if fo_text:
+                fo_val = self._parse_percentage(fo_text)
+                if fo_val is not None:
+                    data['foreign_ownership'] = fo_val
+
+            # 3) Outstanding shares
+            os_text = None
+            for label in ["KLCP đang lưu hành", "Số cổ phiếu lưu hành", "Cổ phiếu lưu hành"]:
+                os_text = self._extract_text_by_label(soup, label)
+                if os_text:
+                    break
+            if os_text:
+                os_val = self._parse_number(os_text)
+                if os_val is not None and os_val > 0:
+                    data['outstanding_shares'] = os_val
+
+            # 4) Free float (if present on CafeF)
+            ff_text = None
+            for label in ["Tỷ lệ tự do chuyển nhượng", "Free float", "Tỷ lệ cổ phiếu tự do"]:
+                ff_text = self._extract_text_by_label(soup, label)
+                if ff_text:
+                    break
+            if ff_text:
+                ff_val = self._parse_percentage(ff_text)
+                if ff_val is not None:
+                    data['free_float'] = ff_val
+
             # Try multiple label variations for trading volume
             volume_labels = ["Khối lượng giao dịch TB", "Khối lượng TB", "Trading volume", "Giao dịch TB", "KLGD TB"]
             for label in volume_labels:
@@ -167,20 +204,20 @@ class VietnamStockDataScraper:
                         data['avg_trading_value'] = avg_volume
                         break
 
-            # Market cap (tỷ đồng) - use as Market Val directly
-            market_cap_labels = [
-                "Vốn hóa thị trường (tỷ đồng)",
-                "Vốn hóa thị trường",
-                "Vốn hóa",
-                "Market cap"
-            ]
-            for label in market_cap_labels:
-                mc_text = self._extract_text_by_label(soup, label)
-                if mc_text:
-                    mc_val = self._parse_market_cap(mc_text)
-                    if mc_val is not None:
-                        data['market_cap'] = mc_val  # billion VND
-                        break
+            # Fallback market cap label variations if exact one above not found
+            if 'market_cap' not in data:
+                market_cap_labels = [
+                    "Vốn hóa thị trường",
+                    "Vốn hóa",
+                    "Market cap"
+                ]
+                for label in market_cap_labels:
+                    alt_mc_text = self._extract_text_by_label(soup, label)
+                    if alt_mc_text:
+                        mc_val = self._parse_market_cap(alt_mc_text)
+                        if mc_val is not None:
+                            data['market_cap'] = mc_val  # billion VND
+                            break
             
             # Try multiple label variations for ownership data
             ownership_labels = ["Tỷ lệ sở hữu", "Management ownership", "Sở hữu", "Tỷ lệ sở hữu ban lãnh đạo"]

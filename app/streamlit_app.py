@@ -275,6 +275,12 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             except Exception:
                 pass
 
+            # Try outstanding shares from scraper if available
+            if (pd.isna(shares_outstanding) or shares_outstanding <= 0) and scraped:
+                os = scraped.get('outstanding_shares')
+                if pd.notna(os) and os > 0:
+                    shares_outstanding = os
+
             if (pd.isna(shares_outstanding) or shares_outstanding <= 0) and not latest.empty and 'earning_per_share' in latest.columns and pd.notna(rev_series.iloc[-1]):
                 eps = latest['earning_per_share'].iloc[0]
                 if pd.notna(eps) and eps > 0:
