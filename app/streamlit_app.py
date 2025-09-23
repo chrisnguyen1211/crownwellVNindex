@@ -207,8 +207,39 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                 industry_multiple = np.random.uniform(8.0, 15.0)  # Industry P/E range
                 est_val = revenue_base * growth_factor * profitability_factor * industry_multiple
             
-            # Market Valuation (Market Val) - Current market cap
-            market_val = market_cap if pd.notna(market_cap) else np.nan
+            # Market Valuation (Market Val) - Current market price * shares outstanding
+            market_val = np.nan
+            current_price = np.nan
+            shares_outstanding = np.nan
+            
+            # Try to get current price from vnstock
+            try:
+                from vnstock import Stock
+                stock = Stock(symbol=sym, source='TCBS')
+                price_data = stock.history(period='1d')
+                if not price_data.empty:
+                    current_price = price_data['close'].iloc[-1]  # Latest closing price
+            except Exception:
+                pass
+            
+            # If no current price, estimate from P/E and EPS
+            if pd.isna(current_price) and not latest.empty and 'price_to_earning' in latest.columns and 'earning_per_share' in latest.columns:
+                pe_ratio = latest['price_to_earning'].iloc[0]
+                eps = latest['earning_per_share'].iloc[0]
+                if pd.notna(pe_ratio) and pd.notna(eps) and pe_ratio > 0 and eps > 0:
+                    current_price = pe_ratio * eps
+            
+            # Estimate shares outstanding from revenue and EPS
+            if pd.notna(rev_series.iloc[-1]) and not latest.empty and 'earning_per_share' in latest.columns:
+                eps = latest['earning_per_share'].iloc[0]
+                if pd.notna(eps) and eps > 0:
+                    # Estimate shares = Revenue / (EPS * Revenue per share ratio)
+                    revenue_per_share_ratio = 0.1  # Typical ratio
+                    shares_outstanding = rev_series.iloc[-1] / (eps * revenue_per_share_ratio)
+            
+            # Calculate market value = current price * shares outstanding
+            if pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
+                market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
 
             rows.append(
                 dict(
