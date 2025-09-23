@@ -197,19 +197,10 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Avg trading value (billion VND/day) if available from CafeF
             avg_trading_value = scraped.get('avg_trading_value', np.nan)
             
-            # Calculate Estimated Valuation (Est Val) - Intrinsic value based on fundamentals
+            # Estimated Valuation (Est Val) from real data (no randomness):
+            # Est Val = EPS_next_year * Shares Outstanding (in billion VND), where
+            # EPS_next_year ≈ EPS * (1 + profit_cagr)
             est_val = np.nan
-            if pd.notna(prof_cagr) and pd.notna(roe_val) and pd.notna(rev_series.iloc[-1]):
-                # DCF-like estimation: Revenue * Growth * ROE * Multiple
-                growth_factor = 1 + prof_cagr  # Growth rate
-                profitability_factor = roe_val if pd.notna(roe_val) else 0.15  # ROE
-                
-                # Revenue is already in billions VND from vnstock API
-                revenue_base = rev_series.iloc[-1]
-                
-                # Intrinsic value = Revenue * (1 + Growth) * ROE * Industry Multiple
-                industry_multiple = np.random.uniform(8.0, 15.0)  # Industry P/E range
-                est_val = revenue_base * growth_factor * profitability_factor * industry_multiple
             
             # Market Valuation (Market Val) - Current market price * shares outstanding
             market_val = np.nan
@@ -268,6 +259,13 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Calculate market value = current price * shares outstanding
             if pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
+
+            # Calculate Est Val once EPS and shares known
+            if pd.isna(est_val) and not latest.empty and 'earning_per_share' in latest.columns and pd.notna(shares_outstanding):
+                eps = latest['earning_per_share'].iloc[0]
+                if pd.notna(eps) and eps > 0 and pd.notna(prof_cagr):
+                    eps_next = eps * (1 + max(prof_cagr, 0))
+                    est_val = (eps_next * shares_outstanding) / 1_000_000_000
 
             rows.append(
                 dict(
