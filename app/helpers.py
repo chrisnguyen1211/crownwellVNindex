@@ -23,7 +23,7 @@ def fetch_all_tickers(exchanges: List[str] = None) -> pd.DataFrame:
 
 def fetch_income_statement(symbol: str) -> pd.DataFrame:
     try:
-        df = Finance(symbol=symbol).income_statement(period="year")
+        df = Finance(symbol=symbol, source='TCBS').income_statement(period="year")
         df = df.reset_index().rename(columns={"period": "year"})
         df["symbol"] = symbol
         return df
@@ -33,7 +33,7 @@ def fetch_income_statement(symbol: str) -> pd.DataFrame:
 
 def fetch_ratios(symbol: str) -> pd.DataFrame:
     try:
-        df = Finance(symbol=symbol).ratio(period="year")
+        df = Finance(symbol=symbol, source='TCBS').ratio(period="year")
         df = df.reset_index().rename(columns={"period": "year"})
         df["symbol"] = symbol
         return df
@@ -54,7 +54,7 @@ def compute_cagr(series: pd.Series, years: int = 3) -> float:
 
 def fetch_balance_sheet(symbol: str) -> pd.DataFrame:
     try:
-        df = Finance(symbol=symbol).balance_sheet(period="year")
+        df = Finance(symbol=symbol, source='TCBS').balance_sheet(period="year")
         df = df.reset_index().rename(columns={"period": "year"})
         df["symbol"] = symbol
         return df
