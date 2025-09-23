@@ -166,6 +166,21 @@ class VietnamStockDataScraper:
                     if avg_volume is not None:
                         data['avg_trading_value'] = avg_volume
                         break
+
+            # Market cap (tỷ đồng) - use as Market Val directly
+            market_cap_labels = [
+                "Vốn hóa thị trường (tỷ đồng)",
+                "Vốn hóa thị trường",
+                "Vốn hóa",
+                "Market cap"
+            ]
+            for label in market_cap_labels:
+                mc_text = self._extract_text_by_label(soup, label)
+                if mc_text:
+                    mc_val = self._parse_market_cap(mc_text)
+                    if mc_val is not None:
+                        data['market_cap'] = mc_val  # billion VND
+                        break
             
             # Try multiple label variations for ownership data
             ownership_labels = ["Tỷ lệ sở hữu", "Management ownership", "Sở hữu", "Tỷ lệ sở hữu ban lãnh đạo"]

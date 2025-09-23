@@ -193,19 +193,11 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             free_float = scraped.get('free_float', np.nan)
             foreign_ownership = scraped.get('foreign_ownership', np.nan)
             management_ownership = scraped.get('management_ownership', np.nan)
-
             # Avg trading value (billion VND/day) if available from CafeF
             avg_trading_value = scraped.get('avg_trading_value', np.nan)
-            
-            # Estimated Valuation (Est Val) from real data (no randomness):
-            # Est Val = EPS_next_year * Shares Outstanding (in billion VND), where
-            # EPS_next_year ≈ EPS * (1 + profit_cagr)
-            est_val = np.nan
-            
-            # Market Valuation (Market Val) - Current market price * shares outstanding
-            market_val = np.nan
-            current_price = np.nan
-            shares_outstanding = np.nan
+            # Prefer CafeF market cap if available
+            if pd.isna(market_val) and scraped and not pd.isna(scraped.get('market_cap')):
+                market_val = scraped.get('market_cap')
 
             # Try fetching latest close price from TCBS public API
             try:
@@ -256,8 +248,8 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     # Heuristic: approximate shares from revenue and an assumed revenue/share ratio (~1e3 VND/share)
                     shares_outstanding = (rev_series.iloc[-1] * 1_000_000_000) / max(eps, 1)
 
-            # Calculate market value = current price * shares outstanding
-            if pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
+            # Calculate market value = current price * shares outstanding (fallback)
+            if pd.isna(market_val) and pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
 
             # Calculate Est Val once EPS and shares known
