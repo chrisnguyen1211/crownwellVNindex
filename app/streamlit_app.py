@@ -236,7 +236,8 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Prefer CafeF market cap if available; do NOT override when present
             if scraped:
                 mc = scraped.get('market_cap')
-                if pd.notna(mc) and mc > 0 and mc != 1000:
+                # Accept only if within plausible bounds (1B - 10,000,000B)
+                if pd.notna(mc) and 1 <= mc <= 10_000_000 and mc != 1000:
                     market_val = mc
 
             # Try fetching latest close price from TCBS public API

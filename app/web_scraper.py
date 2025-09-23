@@ -130,12 +130,20 @@ class VietnamStockDataScraper:
         try:
             # Try different CafeF URL patterns
             urls = [
+                # s.cafef.vn patterns
                 f"https://s.cafef.vn/hose/{symbol.lower()}-ctcp.chn",
                 f"https://s.cafef.vn/hose/{symbol.upper()}-ctcp.chn",
                 f"https://s.cafef.vn/hnx/{symbol.lower()}-ctcp.chn",
                 f"https://s.cafef.vn/hnx/{symbol.upper()}-ctcp.chn",
                 f"https://s.cafef.vn/upcom/{symbol.lower()}-ctcp.chn",
-                f"https://s.cafef.vn/upcom/{symbol.upper()}-ctcp.chn"
+                f"https://s.cafef.vn/upcom/{symbol.upper()}-ctcp.chn",
+                # cafef.vn du-lieu simple symbol pages
+                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hose/{symbol.upper()}.chn",
+                f"https://cafef.vn/du-lieu/hnx/{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hnx/{symbol.upper()}.chn",
+                f"https://cafef.vn/du-lieu/upcom/{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/upcom/{symbol.upper()}.chn",
             ]
             
             response = None
