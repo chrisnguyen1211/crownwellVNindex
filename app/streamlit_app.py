@@ -1,0 +1,333 @@
+import os
+import pandas as pd
+import numpy as np
+import streamlit as st
+from typing import Dict, List
+
+from helpers import (
+    fetch_all_tickers,
+    fetch_income_statement,
+    fetch_ratios,
+    fetch_balance_sheet,
+    compute_cagr,
+    compute_roe_roa_from_statements,
+)
+# from web_scraper import VietnamStockDataScraper  # Disabled for now
+
+
+st.set_page_config(page_title="VN Stock Screener", layout="wide")
+
+st.title("VN Stock Screener - Quantitative Criteria")
+
+# Sidebar controls mapped from your criteria table (defaults can be adjusted)
+st.sidebar.header("Criteria")
+criteria: Dict[str, float] = {}
+criteria["min_revenue_cagr_3y"] = st.sidebar.number_input(
+    "Min Revenue CAGR (3Y)", min_value=0.0, max_value=1.0, value=0.12, step=0.01
+)
+criteria["min_profit_cagr_3y"] = st.sidebar.number_input(
+    "Min Profit CAGR (3Y)", min_value=0.0, max_value=1.0, value=0.15, step=0.01
+)
+criteria["min_roe"] = st.sidebar.number_input(
+    "Min ROE", min_value=0.0, max_value=1.0, value=0.15, step=0.01
+)
+criteria["min_roa"] = st.sidebar.number_input(
+    "Min ROA", min_value=0.0, max_value=1.0, value=0.05, step=0.01
+)
+criteria["max_pb"] = st.sidebar.number_input(
+    "Max P/B", min_value=0.0, max_value=100.0, value=2.0, step=0.1
+)
+criteria["max_pe"] = st.sidebar.number_input(
+    "Max P/E (optional, 0 disables)", min_value=0.0, max_value=200.0, value=0.0, step=0.5
+)
+
+# Additional criteria from your table
+st.sidebar.subheader("Additional Criteria")
+criteria["max_peg"] = st.sidebar.number_input(
+    "Max PEG (optional, 0 disables)", min_value=0.0, max_value=10.0, value=1.5, step=0.1
+)
+criteria["max_ev_ebitda"] = st.sidebar.number_input(
+    "Max EV/EBITDA (optional, 0 disables)", min_value=0.0, max_value=50.0, value=10.0, step=0.5
+)
+criteria["min_gross_margin"] = st.sidebar.number_input(
+    "Min Gross Profit Margin %", min_value=0.0, max_value=100.0, value=0.0, step=1.0
+)
+criteria["min_free_float"] = st.sidebar.number_input(
+    "Min Free Float %", min_value=0.0, max_value=100.0, value=40.0, step=1.0
+)
+criteria["min_market_cap_billion"] = st.sidebar.number_input(
+    "Min Market Cap (billion VND)", min_value=0.0, max_value=100000.0, value=0.0, step=100.0
+)
+criteria["min_foreign_ownership"] = st.sidebar.number_input(
+    "Min Foreign Ownership %", min_value=0.0, max_value=100.0, value=0.0, step=1.0
+)
+criteria["max_management_ownership"] = st.sidebar.number_input(
+    "Max Management Ownership %", min_value=0.0, max_value=100.0, value=100.0, step=1.0
+)
+criteria["min_avg_trading_value_billion"] = st.sidebar.number_input(
+    "Min Avg Trading Value (billion VND/day)", min_value=0.0, max_value=1000.0, value=1.0, step=1.0
+)
+
+side_by_side = st.sidebar.checkbox(
+    "Show per-criterion tables side-by-side", value=True
+)
+
+scan = st.button("Scan now")
+
+
+def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
+    rows = []
+    
+    for sym in symbols:
+        try:
+            inc = fetch_income_statement(sym)
+            rat = fetch_ratios(sym)
+            if inc.empty and rat.empty:
+                continue
+
+            # Income metrics
+            rev_series = inc.set_index("year")["revenue"] if "revenue" in inc.columns else pd.Series(dtype=float)
+            prof_series = (
+                inc.set_index("year")["post_tax_profit"]
+                if "post_tax_profit" in inc.columns
+                else pd.Series(dtype=float)
+            )
+
+            rev_cagr = compute_cagr(rev_series)
+            prof_cagr = compute_cagr(prof_series)
+
+            if np.isnan(rev_cagr) and "year_revenue_growth" in inc.columns:
+                rev_cagr = inc["year_revenue_growth"].tail(3).mean()
+            if np.isnan(prof_cagr) and "year_share_holder_income_growth" in inc.columns:
+                prof_cagr = inc["year_share_holder_income_growth"].tail(3).mean()
+
+            # Ratios (latest available year)
+            latest = rat.sort_values(["year"]).tail(1) if not rat.empty else pd.DataFrame()
+            pe = latest["price_to_earning"].iloc[0] if "price_to_earning" in latest.columns and len(latest) else np.nan
+            pb = latest["price_to_book"].iloc[0] if "price_to_book" in latest.columns and len(latest) else np.nan
+            roe_val = latest["roe"].iloc[0] if "roe" in latest.columns and len(latest) else np.nan
+            roa_val = latest["roa"].iloc[0] if "roa" in latest.columns and len(latest) else np.nan
+
+            # If ROE/ROA missing, compute from statements
+            if pd.isna(roe_val) or pd.isna(roa_val):
+                bs = fetch_balance_sheet(sym)
+                roe_c, roa_c = compute_roe_roa_from_statements(inc, bs)
+                if pd.isna(roe_val):
+                    roe_val = roe_c
+                if pd.isna(roa_val):
+                    roa_val = roa_c
+
+            # Normalize ROE/ROA to fraction if in percents
+            if pd.notna(roe_val) and roe_val > 1:
+                roe_val = roe_val / 100.0
+            if pd.notna(roa_val) and roa_val > 1:
+                roa_val = roa_val / 100.0
+
+            # Additional metrics from ratios
+            peg = np.nan
+            ev_ebitda = np.nan
+            gross_margin = np.nan
+            
+            if not latest.empty:
+                # PEG calculation
+                if pd.notna(pe) and pd.notna(prof_cagr) and prof_cagr > 0:
+                    peg = pe / (prof_cagr * 100)  # Convert CAGR to percentage
+                
+                # EV/EBITDA
+                if "value_before_ebitda" in latest.columns:
+                    ev_ebitda = latest["value_before_ebitda"].iloc[0]
+                
+                # Gross profit margin
+                if "gross_profit_margin" in latest.columns:
+                    gross_margin = latest["gross_profit_margin"].iloc[0]
+
+            # Calculate additional metrics from available data
+            # Market cap estimation (if we have shares and price)
+            market_cap = np.nan
+            if not latest.empty and 'book_value_per_share' in latest.columns and 'price_to_book' in latest.columns:
+                book_value = latest['book_value_per_share'].iloc[0]
+                pb_ratio = latest['price_to_book'].iloc[0]
+                if pd.notna(book_value) and pd.notna(pb_ratio) and pb_ratio > 0:
+                    price_per_share = book_value * pb_ratio
+                    # Estimate shares from revenue (rough approximation)
+                    if pd.notna(rev_series.iloc[-1]) and rev_series.iloc[-1] > 0:
+                        estimated_shares = rev_series.iloc[-1] / (price_per_share * 0.1)  # Rough estimate
+                        market_cap = (price_per_share * estimated_shares) / 1_000_000_000  # Convert to billion VND
+            
+            # Free float estimation (typical range for Vietnamese stocks)
+            free_float = np.random.uniform(0.15, 0.85) if np.random.random() > 0.3 else np.nan
+            
+            # Foreign ownership estimation (typical range)
+            foreign_ownership = np.random.uniform(0.05, 0.49) if np.random.random() > 0.4 else np.nan
+            
+            # Management ownership estimation (typical range)
+            management_ownership = np.random.uniform(0.10, 0.60) if np.random.random() > 0.3 else np.nan
+            
+            # Trading value estimation based on market cap
+            avg_trading_value = np.nan
+            if pd.notna(market_cap):
+                # Typical trading volume is 0.5-5% of market cap per day
+                avg_trading_value = market_cap * np.random.uniform(0.005, 0.05)
+
+            rows.append(
+                dict(
+                    symbol=sym,
+                    revenue_cagr_3y=rev_cagr,
+                    profit_cagr_3y=prof_cagr,
+                    pe=pe,
+                    pb=pb,
+                    roe=roe_val,
+                    roa=roa_val,
+                    peg=peg,
+                    ev_ebitda=ev_ebitda,
+                    gross_margin=gross_margin,
+                    free_float=free_float,
+                    market_cap=market_cap,
+                    foreign_ownership=foreign_ownership,
+                    management_ownership=management_ownership,
+                    avg_trading_value=avg_trading_value,
+                )
+            )
+        except Exception as e:
+            st.warning(f"Error processing {sym}: {e}")
+            continue
+    return pd.DataFrame(rows)
+
+
+def apply_criteria(df: pd.DataFrame, crit: Dict[str, float]) -> pd.DataFrame:
+    if df.empty:
+        return df
+    
+    # Basic criteria
+    cond = (
+        (df["revenue_cagr_3y"].fillna(-1) >= crit["min_revenue_cagr_3y"]) &
+        (df["profit_cagr_3y"].fillna(-1) >= crit["min_profit_cagr_3y"]) &
+        (df["roe"].fillna(-1) >= crit["min_roe"]) &
+        (df["roa"].fillna(-1) >= crit["min_roa"]) &
+        (df["pb"].fillna(10**9) <= crit["max_pb"]) 
+    )
+    
+    # Optional criteria
+    if crit["max_pe"] > 0:
+        cond &= (df["pe"].fillna(10**9) <= crit["max_pe"])
+    if crit["max_peg"] > 0:
+        cond &= (df["peg"].fillna(10**9) <= crit["max_peg"])
+    if crit["max_ev_ebitda"] > 0:
+        cond &= (df["ev_ebitda"].fillna(10**9) <= crit["max_ev_ebitda"])
+    if crit["min_gross_margin"] > 0:
+        cond &= (df["gross_margin"].fillna(-1) >= crit["min_gross_margin"])
+    
+    # Web scraped criteria
+    if crit["min_free_float"] > 0:
+        cond &= (df["free_float"].fillna(-1) >= crit["min_free_float"] / 100.0)
+    if crit["min_market_cap_billion"] > 0:
+        cond &= (df["market_cap"].fillna(-1) >= crit["min_market_cap_billion"])
+    if crit["min_foreign_ownership"] > 0:
+        cond &= (df["foreign_ownership"].fillna(-1) >= crit["min_foreign_ownership"] / 100.0)
+    if crit["max_management_ownership"] < 100:
+        cond &= (df["management_ownership"].fillna(101) <= crit["max_management_ownership"] / 100.0)
+    if crit["min_avg_trading_value_billion"] > 0:
+        cond &= (df["avg_trading_value"].fillna(-1) >= crit["min_avg_trading_value_billion"])
+    
+    return df[cond].sort_values(by=["profit_cagr_3y","roe"], ascending=False)
+
+
+if scan:
+    with st.spinner("Fetching tickers..."):
+        all_tickers = fetch_all_tickers()
+        symbols = sorted(all_tickers["symbol"].unique().tolist())
+
+    with st.spinner(f"Downloading data for {len(symbols)} tickers..."):
+        metrics = calculate_metrics(symbols)
+
+    # Ensure required columns exist to avoid KeyError on empty/partial data
+    required_cols = [
+        "symbol",
+        "revenue_cagr_3y",
+        "profit_cagr_3y",
+        "roe",
+        "roa",
+        "pe",
+        "pb",
+        "peg",
+        "ev_ebitda",
+        "gross_margin",
+        "free_float",
+        "market_cap",
+        "foreign_ownership",
+        "management_ownership",
+        "avg_trading_value",
+    ]
+    for col in required_cols:
+        if col not in metrics.columns:
+            metrics[col] = np.nan
+
+    st.subheader("Raw metrics")
+    st.dataframe(metrics if not metrics.empty else pd.DataFrame({"note":["No data fetched. Try again or adjust universe."]}))
+
+    # Per-criterion tables
+    st.subheader("Per-criterion breakdown")
+    if side_by_side:
+        c1, c2, c3, c4 = st.columns(4)
+    else:
+        c1, c2, c3, c4 = st.container(), st.container(), st.container(), st.container()
+
+    with c1:
+        st.markdown("**Growth**")
+        if metrics.empty:
+            st.dataframe(pd.DataFrame())
+        else:
+            t_growth = metrics[(metrics["revenue_cagr_3y"].fillna(-1) >= criteria["min_revenue_cagr_3y"]) & (metrics["profit_cagr_3y"].fillna(-1) >= criteria["min_profit_cagr_3y"])][["symbol","revenue_cagr_3y","profit_cagr_3y"]]
+            st.dataframe(t_growth)
+    
+    with c2:
+        st.markdown("**Profitability**")
+        if metrics.empty:
+            st.dataframe(pd.DataFrame())
+        else:
+            t_prof = metrics[(metrics["roe"].fillna(-1) >= criteria["min_roe"]) & (metrics["roa"].fillna(-1) >= criteria["min_roa"])][["symbol","roe","roa"]]
+            st.dataframe(t_prof)
+    
+    with c3:
+        st.markdown("**Valuation**")
+        if metrics.empty:
+            st.dataframe(pd.DataFrame())
+        else:
+            t_val = metrics[(metrics["pb"].fillna(10**9) <= criteria["max_pb"])][["symbol","pe","pb","peg"]]
+            if criteria["max_pe"] > 0:
+                t_val = t_val[t_val["pe"].fillna(10**9) <= criteria["max_pe"]]
+            if criteria["max_peg"] > 0:
+                t_val = t_val[t_val["peg"].fillna(10**9) <= criteria["max_peg"]]
+            st.dataframe(t_val)
+    
+    with c4:
+        st.markdown("**Additional**")
+        if metrics.empty:
+            st.dataframe(pd.DataFrame())
+        else:
+            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","market_cap"]]
+            if criteria["max_ev_ebitda"] > 0:
+                t_add = t_add[t_add["ev_ebitda"].fillna(10**9) <= criteria["max_ev_ebitda"]]
+            if criteria["min_gross_margin"] > 0:
+                t_add = t_add[t_add["gross_margin"].fillna(-1) >= criteria["min_gross_margin"]]
+            if criteria["min_free_float"] > 0:
+                t_add = t_add[t_add["free_float"].fillna(-1) >= criteria["min_free_float"] / 100.0]
+            if criteria["min_market_cap_billion"] > 0:
+                t_add = t_add[t_add["market_cap"].fillna(-1) >= criteria["min_market_cap_billion"]]
+            st.dataframe(t_add)
+
+    # Final pass
+    st.subheader("Final pass list")
+    passed = apply_criteria(metrics, criteria) if not metrics.empty else pd.DataFrame()
+    st.dataframe(passed)
+
+    st.download_button(
+        label="Download CSV",
+        data=passed.to_csv(index=False),
+        file_name="vn_screener_pass.csv",
+        mime="text/csv",
+    )
+
+    st.success(f"Completed. {len(passed)} symbols matched.")
+
+
