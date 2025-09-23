@@ -242,7 +242,30 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     market_val = mc
                     market_val_source = 'cafef'
 
-            # We no longer fetch price for Market Val; only use CafeF market cap if present.
+            # If CafeF missing, fetch latest price from TCBS and compute price * shares
+            if pd.isna(market_val):
+                try:
+                    import requests, time
+                    now = int(time.time())
+                    start = now - 60*60*24*14
+                    url = f"https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars?ticker={sym}&type=stock&resolution=1&from={start}&to={now}"
+                    r = requests.get(url, timeout=10)
+                    if r.ok:
+                        js = r.json()
+                        data = js.get('data') if isinstance(js, dict) else None
+                        if data and isinstance(data, list) and len(data) > 0:
+                            last = data[-1]
+                            cp = last.get('close') or last.get('c')
+                            if isinstance(cp, (int, float)) and cp > 0:
+                                current_price = cp
+                except Exception:
+                    pass
+
+            # Use outstanding shares from scraper if available
+            if (pd.isna(shares_outstanding) or shares_outstanding <= 0) and scraped:
+                os = scraped.get('outstanding_shares')
+                if pd.notna(os) and os > 0:
+                    shares_outstanding = os
 
             # Compute shares outstanding using equity and BVPS when available, else revenue/EPS heuristic
             try:
@@ -273,7 +296,10 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     # Heuristic: approximate shares from revenue and an assumed revenue/share ratio (~1e3 VND/share)
                     shares_outstanding = (rev_series.iloc[-1] * 1_000_000_000) / max(eps, 1)
 
-            # Do NOT fallback to price*shares. Leave market_val as NaN if CafeF missing.
+            # Fallback to price * shares if CafeF missing and we have price and shares
+            if pd.isna(market_val) and pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
+                market_val = (current_price * shares_outstanding) / 1_000_000_000
+                market_val_source = 'price_x_shares'
 
             # Sanitize percentages
             for _col in ['free_float', 'foreign_ownership', 'management_ownership']:
