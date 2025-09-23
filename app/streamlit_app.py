@@ -233,12 +233,14 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Ensure est_val is defined before any checks
             est_val = np.nan
 
+            market_val_source = 'unknown'
             # Prefer CafeF market cap if available; do NOT override when present
             if scraped:
                 mc = scraped.get('market_cap')
                 # Accept only if within plausible bounds (1B - 10,000,000B)
                 if pd.notna(mc) and 1 <= mc <= 10_000_000 and mc != 1000:
                     market_val = mc
+                    market_val_source = 'cafef'
 
             # Try fetching latest close price from TCBS public API
             try:
@@ -298,6 +300,7 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Calculate market value = current price * shares outstanding (fallback only when no CafeF value)
             if pd.isna(market_val) and pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
+                market_val_source = 'price_x_shares'
 
             # Sanitize percentages
             for _col in ['free_float', 'foreign_ownership', 'management_ownership']:
@@ -333,6 +336,7 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     avg_trading_value=avg_trading_value,
                     est_val=est_val,
                     market_val=market_val,
+                    market_val_source=market_val_source,
                 )
             )
         except Exception as e:
@@ -405,6 +409,7 @@ if scan:
         "avg_trading_value",
         "est_val",
         "market_val",
+        "market_val_source",
     ]
     for col in required_cols:
         if col not in metrics.columns:
@@ -451,6 +456,8 @@ if scan:
         
         if 'market_val' in display_metrics.columns:
             display_metrics['market_val'] = display_metrics['market_val'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
+        if 'market_val_source' in display_metrics.columns:
+            display_metrics['market_val_source'] = display_metrics['market_val_source'].fillna('')
         
         st.dataframe(display_metrics)
     else:
@@ -509,7 +516,7 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","est_val","market_val"]].copy()
+            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","est_val","market_val","market_val_source"]].copy()
             if criteria["max_ev_ebitda"] > 0:
                 t_add = t_add[t_add["ev_ebitda"].fillna(10**9) <= criteria["max_ev_ebitda"]]
             if criteria["min_gross_margin"] > 0:
@@ -522,7 +529,7 @@ if scan:
                 t_add["free_float"] = t_add["free_float"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
                 t_add["est_val"] = t_add["est_val"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
                 t_add["market_val"] = t_add["market_val"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
-                t_add.columns = ["Symbol", "EV/EBITDA", "Gross Margin", "Free Float", "Est Val", "Market Val"]
+                t_add.columns = ["Symbol", "EV/EBITDA", "Gross Margin", "Free Float", "Est Val", "Market Val", "Market Val Source"]
             st.dataframe(t_add)
 
     # Final pass
@@ -576,7 +583,8 @@ if scan:
             'management_ownership': 'Management Ownership',
             'avg_trading_value': 'Avg Trading Value',
             'est_val': 'Est Val',
-            'market_val': 'Market Val'
+            'market_val': 'Market Val',
+            'market_val_source': 'Market Val Source'
         }
         
         display_passed = display_passed.rename(columns=column_mapping)
