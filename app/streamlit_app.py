@@ -490,7 +490,24 @@ if scan:
         if 'market_val_source' in display_metrics.columns:
             display_metrics['market_val_source'] = display_metrics['market_val_source'].fillna('')
         
-        st.dataframe(display_metrics)
+        raw_column_config = {
+            'revenue_cagr_3y': st.column_config.TextColumn(
+                'revenue_cagr_3y', help='CAGR doanh thu 3 năm: tính từ báo cáo kết quả kinh doanh.'
+            ),
+            'profit_cagr_3y': st.column_config.TextColumn(
+                'profit_cagr_3y', help='CAGR lợi nhuận sau thuế 3 năm: tính từ báo cáo kết quả kinh doanh.'
+            ),
+            'peg': st.column_config.TextColumn(
+                'peg', help='PEG = P/E ÷ Profit CAGR.'
+            ),
+            'est_val': st.column_config.TextColumn(
+                'est_val', help='Est Val (DCF 5Y): FCF=OCF−Capex; r=12%, g_terminal=3%; fallback EPS_next×Shares.'
+            ),
+            'market_val': st.column_config.TextColumn(
+                'market_val', help='Market Val: CafeF "Vốn hóa thị trường (tỷ đồng)"; fallback Price×Shares.'
+            ),
+        }
+        st.dataframe(display_metrics, column_config=raw_column_config)
     else:
         st.dataframe(pd.DataFrame({"note":["No data fetched. Try again or adjust universe."]}))
 
@@ -561,7 +578,15 @@ if scan:
                 t_add["est_val"] = t_add["est_val"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
                 t_add["market_val"] = t_add["market_val"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
                 t_add.columns = ["Symbol", "EV/EBITDA", "Gross Margin", "Free Float", "Est Val", "Market Val", "Market Val Source"]
-            st.dataframe(t_add)
+            add_column_config = {
+                'Est Val': st.column_config.TextColumn(
+                    'Est Val', help='Est Val (DCF 5Y): FCF=OCF−Capex; r=12%, g_terminal=3%; fallback EPS_next×Shares.'
+                ),
+                'Market Val': st.column_config.TextColumn(
+                    'Market Val', help='CafeF "Vốn hóa thị trường (tỷ đồng)"; fallback Price×Shares.'
+                ),
+            }
+            st.dataframe(t_add, column_config=add_column_config)
 
     # Final pass
     st.subheader("Final pass list")
@@ -619,7 +644,24 @@ if scan:
         }
         
         display_passed = display_passed.rename(columns=column_mapping)
-        st.dataframe(display_passed)
+        fp_column_config = {
+            'Est Val': st.column_config.TextColumn(
+                'Est Val', help='Est Val (DCF 5Y): FCF=OCF−Capex; r=12%, g_terminal=3%; fallback EPS_next×Shares.'
+            ),
+            'Market Val': st.column_config.TextColumn(
+                'Market Val', help='CafeF "Vốn hóa thị trường (tỷ đồng)"; fallback Price×Shares.'
+            ),
+            'PEG': st.column_config.TextColumn(
+                'PEG', help='PEG = P/E ÷ Profit CAGR.'
+            ),
+            'Revenue CAGR (3Y)': st.column_config.TextColumn(
+                'Revenue CAGR (3Y)', help='CAGR doanh thu 3 năm: tính từ báo cáo kết quả kinh doanh.'
+            ),
+            'Profit CAGR (3Y)': st.column_config.TextColumn(
+                'Profit CAGR (3Y)', help='CAGR lợi nhuận sau thuế 3 năm: tính từ báo cáo kết quả kinh doanh.'
+            ),
+        }
+        st.dataframe(display_passed, column_config=fp_column_config)
     else:
         st.dataframe(passed)
 
