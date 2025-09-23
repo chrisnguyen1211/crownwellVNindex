@@ -310,7 +310,39 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     if _val < 0:
                         locals()[_col] = 0.0
 
-            # Calculate Est Val once EPS and shares known
+            # Calculate Est Val via simple DCF (fallback to EPS approach if cash flow missing)
+            if pd.isna(est_val):
+                try:
+                    from vnstock import Finance as _Fin
+                    cflow = _Fin(symbol=sym, source='TCBS').cash_flow(period='year')
+                    if isinstance(cflow, pd.DataFrame) and not cflow.empty:
+                        cf = cflow.reset_index().rename(columns={'period':'year'})
+                        cf.columns = [str(c).lower() for c in cf.columns]
+                        ocf_col = next((c for c in cf.columns if c in ['cash_from_operation','cashflow_from_operating_activities','operating_cash_flow','cash_flows_from_operating_activities','net_cash_from_operating_activities']), None)
+                        capex_col = next((c for c in cf.columns if c in ['capex','purchase_of_fixed_assets','net_capex','investment_in_fixed_assets','purchases_of_property_plant_and_equipment']), None)
+                        ocf0 = float(pd.to_numeric(cf[ocf_col], errors='coerce').dropna().tail(1).values[0]) if ocf_col and ocf_col in cf.columns and pd.to_numeric(cf[ocf_col], errors='coerce').dropna().size>0 else np.nan
+                        capex0 = float(pd.to_numeric(cf[capex_col], errors='coerce').dropna().tail(1).values[0]) if capex_col and capex_col in cf.columns and pd.to_numeric(cf[capex_col], errors='coerce').dropna().size>0 else np.nan
+                        if pd.isna(ocf0) and pd.notna(prof_series).any():
+                            ocf0 = float(prof_series.dropna().tail(1).values[0])
+                        if pd.isna(capex0) and pd.notna(rev_series).any():
+                            capex0 = float(rev_series.dropna().tail(1).values[0]) * 0.08
+                        if pd.notna(ocf0) and pd.notna(capex0):
+                            fcf0 = ocf0 - capex0
+                            g_candidates = [x for x in [prof_cagr, rev_cagr] if pd.notna(x) and x > 0]
+                            g = min(max(np.mean(g_candidates) if g_candidates else 0.08, 0.02), 0.20)
+                            r = 0.12
+                            gt = 0.03
+                            horizon = 5
+                            pv = 0.0
+                            fcf_t = fcf0
+                            for t in range(1, horizon + 1):
+                                fcf_t = fcf_t * (1 + g)
+                                pv += fcf_t / ((1 + r) ** t)
+                            tv = (fcf_t * (1 + gt)) / (r - gt)
+                            pv += tv / ((1 + r) ** horizon)
+                            est_val = pv
+                except Exception:
+                    pass
             if pd.isna(est_val) and not latest.empty and 'earning_per_share' in latest.columns and pd.notna(shares_outstanding):
                 eps = latest['earning_per_share'].iloc[0]
                 if pd.notna(eps) and eps > 0 and pd.notna(prof_cagr):
