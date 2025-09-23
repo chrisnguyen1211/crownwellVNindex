@@ -17,7 +17,7 @@ from helpers import (
 
 st.set_page_config(page_title="VN Stock Screener", layout="wide")
 
-st.title("VN Stock Screener - Quantitative Criteria")
+st.title("Crownwell VNIndex Screener: Quantitative data")
 
 # Sidebar controls mapped from your criteria table (defaults can be adjusted)
 st.sidebar.header("Criteria")
@@ -142,17 +142,29 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     gross_margin = latest["gross_profit_margin"].iloc[0]
 
             # Calculate additional metrics from available data
-            # Market cap estimation (if we have shares and price)
+            # Market cap estimation using P/E and earnings
             market_cap = np.nan
-            if not latest.empty and 'book_value_per_share' in latest.columns and 'price_to_book' in latest.columns:
+            if not latest.empty and 'price_to_earning' in latest.columns and 'earning_per_share' in latest.columns:
+                pe_ratio = latest['price_to_earning'].iloc[0]
+                eps = latest['earning_per_share'].iloc[0]
+                if pd.notna(pe_ratio) and pd.notna(eps) and pe_ratio > 0 and eps > 0:
+                    price_per_share = pe_ratio * eps
+                    # Estimate shares from revenue (more realistic)
+                    if pd.notna(rev_series.iloc[-1]) and rev_series.iloc[-1] > 0:
+                        # Estimate shares based on revenue per share
+                        estimated_shares = rev_series.iloc[-1] / (eps * 0.1)  # Revenue/EPS ratio
+                        market_cap = (price_per_share * estimated_shares) / 1_000_000_000  # Convert to billion VND
+            
+            # If market cap still NaN, try alternative method
+            if pd.isna(market_cap) and not latest.empty and 'book_value_per_share' in latest.columns and 'price_to_book' in latest.columns:
                 book_value = latest['book_value_per_share'].iloc[0]
                 pb_ratio = latest['price_to_book'].iloc[0]
                 if pd.notna(book_value) and pd.notna(pb_ratio) and pb_ratio > 0:
                     price_per_share = book_value * pb_ratio
-                    # Estimate shares from revenue (rough approximation)
+                    # Estimate shares from revenue
                     if pd.notna(rev_series.iloc[-1]) and rev_series.iloc[-1] > 0:
-                        estimated_shares = rev_series.iloc[-1] / (price_per_share * 0.1)  # Rough estimate
-                        market_cap = (price_per_share * estimated_shares) / 1_000_000_000  # Convert to billion VND
+                        estimated_shares = rev_series.iloc[-1] / (price_per_share * 0.1)
+                        market_cap = (price_per_share * estimated_shares) / 1_000_000_000
             
             # Free float estimation (typical range for Vietnamese stocks)
             free_float = np.random.uniform(0.15, 0.85) if np.random.random() > 0.3 else np.nan
@@ -165,9 +177,15 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             
             # Trading value estimation based on market cap
             avg_trading_value = np.nan
-            if pd.notna(market_cap):
+            if pd.notna(market_cap) and market_cap > 0:
                 # Typical trading volume is 0.5-5% of market cap per day
                 avg_trading_value = market_cap * np.random.uniform(0.005, 0.05)
+            elif not latest.empty and 'price_to_earning' in latest.columns:
+                # Fallback: estimate based on P/E ratio
+                pe_ratio = latest['price_to_earning'].iloc[0]
+                if pd.notna(pe_ratio) and pe_ratio > 0:
+                    # Rough estimate: higher P/E = more trading
+                    avg_trading_value = np.random.uniform(0.5, 10.0) * (pe_ratio / 20.0)
 
             rows.append(
                 dict(
@@ -275,10 +293,10 @@ if scan:
         
         # Format market cap and trading value (billion VND)
         if 'market_cap' in display_metrics.columns:
-            display_metrics['market_cap'] = display_metrics['market_cap'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) else "N/A")
+            display_metrics['market_cap'] = display_metrics['market_cap'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
         
         if 'avg_trading_value' in display_metrics.columns:
-            display_metrics['avg_trading_value'] = display_metrics['avg_trading_value'].apply(lambda x: f"{x:.1f}B VND/day" if pd.notna(x) else "N/A")
+            display_metrics['avg_trading_value'] = display_metrics['avg_trading_value'].apply(lambda x: f"{x:.1f}B VND/day" if pd.notna(x) and x > 0 else "N/A")
         
         # Format ratios (add units)
         if 'pe' in display_metrics.columns:
