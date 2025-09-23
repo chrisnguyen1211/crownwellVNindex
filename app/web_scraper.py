@@ -218,6 +218,26 @@ class VietnamStockDataScraper:
                         if mc_val is not None:
                             data['market_cap'] = mc_val  # billion VND
                             break
+
+            # Regex fallback: search raw text for pattern near label
+            if 'market_cap' not in data:
+                try:
+                    full_text = soup.get_text(separator=' ', strip=True)
+                    # examples: "Vốn hóa thị trường (tỷ đồng): 167,625" or "Vốn hóa thị trường: 167.625 tỷ đồng"
+                    patterns = [
+                        r"Vốn hóa thị trường\s*\(tỷ đồng\)\s*[:：]?\s*([\d\.,]+)",
+                        r"Vốn hóa thị trường\s*[:：]?\s*([\d\.,]+)\s*(tỷ|ty|billion)?"
+                    ]
+                    for pat in patterns:
+                        m = re.search(pat, full_text, flags=re.IGNORECASE)
+                        if m:
+                            num_txt = m.group(1)
+                            mc_val = self._parse_market_cap(num_txt)
+                            if mc_val is not None and mc_val > 0:
+                                data['market_cap'] = mc_val
+                                break
+                except Exception:
+                    pass
             
             # Try multiple label variations for ownership data
             ownership_labels = ["Tỷ lệ sở hữu", "Management ownership", "Sở hữu", "Tỷ lệ sở hữu ban lãnh đạo"]
