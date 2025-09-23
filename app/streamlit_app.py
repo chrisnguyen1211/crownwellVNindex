@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from typing import Dict, List
+from datetime import datetime, timezone, timedelta
 
 from helpers import (
     fetch_all_tickers,
@@ -74,7 +75,13 @@ side_by_side = st.sidebar.checkbox(
 
 scan = st.button("Scan now")
 
+# Auto-run once on first load; subsequent presses refresh
+if 'has_scanned' not in st.session_state:
+    st.session_state['has_scanned'] = True
+    scan = True
 
+
+@st.cache_data(ttl=3600, show_spinner=False)
 def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
     rows = []
     
@@ -364,6 +371,10 @@ if scan:
     for col in required_cols:
         if col not in metrics.columns:
             metrics[col] = np.nan
+
+    # Last scan time (GMT+7)
+    ts = datetime.now(timezone(timedelta(hours=7)))
+    st.caption(f"Last scan: {ts.strftime('%Y-%m-%d %H:%M:%S')} GMT+7")
 
     st.subheader("Raw metrics")
     if not metrics.empty:
