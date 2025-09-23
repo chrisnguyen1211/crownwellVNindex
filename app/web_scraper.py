@@ -144,6 +144,11 @@ class VietnamStockDataScraper:
                 f"https://cafef.vn/du-lieu/hnx/{symbol.upper()}.chn",
                 f"https://cafef.vn/du-lieu/upcom/{symbol.lower()}.chn",
                 f"https://cafef.vn/du-lieu/upcom/{symbol.upper()}.chn",
+                # cafef.vn du-lieu with company slug patterns (common)
+                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hose/{symbol.upper()}-cong-ty-co-phan-{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hnx/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/upcom/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
             ]
             
             response = None
@@ -244,6 +249,42 @@ class VietnamStockDataScraper:
                             if mc_val is not None and mc_val > 0:
                                 data['market_cap'] = mc_val
                                 break
+                except Exception:
+                    pass
+
+            # Table-based extraction: find row for the symbol and take the column matching "Vốn hóa TT (Tỷ đồng)"
+            if 'market_cap' not in data:
+                try:
+                    tables = soup.find_all('table')
+                    for table in tables:
+                        headers = [th.get_text(strip=True) for th in table.find_all('th')]
+                        if not headers:
+                            continue
+                        # Normalize headers
+                        headers_lower = [h.lower() for h in headers]
+                        if any('vốn hóa tt' in h and 'tỷ' in h for h in headers_lower):
+                            # find symbol row
+                            for tr in table.find_all('tr'):
+                                tds = tr.find_all('td')
+                                if not tds:
+                                    continue
+                                row_text = tr.get_text(' ', strip=True)
+                                if symbol.upper() in row_text or f"/{symbol.upper()}-" in row_text:
+                                    # find the column index for market cap
+                                    mc_idx = None
+                                    for idx, h in enumerate(headers_lower):
+                                        if 'vốn hóa tt' in h and 'tỷ' in h:
+                                            mc_idx = idx
+                                            break
+                                    if mc_idx is not None and mc_idx < len(tds):
+                                        cell = tds[mc_idx].get_text(strip=True)
+                                        mc_val = self._parse_market_cap(cell)
+                                        if mc_val is not None and mc_val > 0:
+                                            data['market_cap'] = mc_val
+                                            raise StopIteration
+                    
+                except StopIteration:
+                    pass
                 except Exception:
                     pass
             
