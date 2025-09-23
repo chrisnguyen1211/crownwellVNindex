@@ -263,7 +263,42 @@ if scan:
             metrics[col] = np.nan
 
     st.subheader("Raw metrics")
-    st.dataframe(metrics if not metrics.empty else pd.DataFrame({"note":["No data fetched. Try again or adjust universe."]}))
+    if not metrics.empty:
+        # Format metrics with units for better readability
+        display_metrics = metrics.copy()
+        
+        # Format percentages (multiply by 100 and add %)
+        percentage_cols = ['revenue_cagr_3y', 'profit_cagr_3y', 'roe', 'roa', 'free_float', 'foreign_ownership', 'management_ownership']
+        for col in percentage_cols:
+            if col in display_metrics.columns:
+                display_metrics[col] = display_metrics[col].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+        
+        # Format market cap and trading value (billion VND)
+        if 'market_cap' in display_metrics.columns:
+            display_metrics['market_cap'] = display_metrics['market_cap'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) else "N/A")
+        
+        if 'avg_trading_value' in display_metrics.columns:
+            display_metrics['avg_trading_value'] = display_metrics['avg_trading_value'].apply(lambda x: f"{x:.1f}B VND/day" if pd.notna(x) else "N/A")
+        
+        # Format ratios (add units)
+        if 'pe' in display_metrics.columns:
+            display_metrics['pe'] = display_metrics['pe'].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+        
+        if 'pb' in display_metrics.columns:
+            display_metrics['pb'] = display_metrics['pb'].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+        
+        if 'peg' in display_metrics.columns:
+            display_metrics['peg'] = display_metrics['peg'].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+        
+        if 'ev_ebitda' in display_metrics.columns:
+            display_metrics['ev_ebitda'] = display_metrics['ev_ebitda'].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+        
+        if 'gross_margin' in display_metrics.columns:
+            display_metrics['gross_margin'] = display_metrics['gross_margin'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
+        
+        st.dataframe(display_metrics)
+    else:
+        st.dataframe(pd.DataFrame({"note":["No data fetched. Try again or adjust universe."]}))
 
     # Per-criterion tables
     st.subheader("Per-criterion breakdown")
@@ -277,7 +312,11 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_growth = metrics[(metrics["revenue_cagr_3y"].fillna(-1) >= criteria["min_revenue_cagr_3y"]) & (metrics["profit_cagr_3y"].fillna(-1) >= criteria["min_profit_cagr_3y"])][["symbol","revenue_cagr_3y","profit_cagr_3y"]]
+            t_growth = metrics[(metrics["revenue_cagr_3y"].fillna(-1) >= criteria["min_revenue_cagr_3y"]) & (metrics["profit_cagr_3y"].fillna(-1) >= criteria["min_profit_cagr_3y"])][["symbol","revenue_cagr_3y","profit_cagr_3y"]].copy()
+            if not t_growth.empty:
+                t_growth["revenue_cagr_3y"] = t_growth["revenue_cagr_3y"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+                t_growth["profit_cagr_3y"] = t_growth["profit_cagr_3y"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+                t_growth.columns = ["Symbol", "Revenue CAGR (3Y)", "Profit CAGR (3Y)"]
             st.dataframe(t_growth)
     
     with c2:
@@ -285,7 +324,11 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_prof = metrics[(metrics["roe"].fillna(-1) >= criteria["min_roe"]) & (metrics["roa"].fillna(-1) >= criteria["min_roa"])][["symbol","roe","roa"]]
+            t_prof = metrics[(metrics["roe"].fillna(-1) >= criteria["min_roe"]) & (metrics["roa"].fillna(-1) >= criteria["min_roa"])][["symbol","roe","roa"]].copy()
+            if not t_prof.empty:
+                t_prof["roe"] = t_prof["roe"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+                t_prof["roa"] = t_prof["roa"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+                t_prof.columns = ["Symbol", "ROE", "ROA"]
             st.dataframe(t_prof)
     
     with c3:
@@ -293,11 +336,16 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_val = metrics[(metrics["pb"].fillna(10**9) <= criteria["max_pb"])][["symbol","pe","pb","peg"]]
+            t_val = metrics[(metrics["pb"].fillna(10**9) <= criteria["max_pb"])][["symbol","pe","pb","peg"]].copy()
             if criteria["max_pe"] > 0:
                 t_val = t_val[t_val["pe"].fillna(10**9) <= criteria["max_pe"]]
             if criteria["max_peg"] > 0:
                 t_val = t_val[t_val["peg"].fillna(10**9) <= criteria["max_peg"]]
+            if not t_val.empty:
+                t_val["pe"] = t_val["pe"].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+                t_val["pb"] = t_val["pb"].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+                t_val["peg"] = t_val["peg"].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+                t_val.columns = ["Symbol", "P/E", "P/B", "PEG"]
             st.dataframe(t_val)
     
     with c4:
@@ -305,7 +353,7 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","market_cap"]]
+            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","market_cap"]].copy()
             if criteria["max_ev_ebitda"] > 0:
                 t_add = t_add[t_add["ev_ebitda"].fillna(10**9) <= criteria["max_ev_ebitda"]]
             if criteria["min_gross_margin"] > 0:
@@ -314,12 +362,67 @@ if scan:
                 t_add = t_add[t_add["free_float"].fillna(-1) >= criteria["min_free_float"] / 100.0]
             if criteria["min_market_cap_billion"] > 0:
                 t_add = t_add[t_add["market_cap"].fillna(-1) >= criteria["min_market_cap_billion"]]
+            if not t_add.empty:
+                t_add["ev_ebitda"] = t_add["ev_ebitda"].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+                t_add["gross_margin"] = t_add["gross_margin"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
+                t_add["free_float"] = t_add["free_float"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+                t_add["market_cap"] = t_add["market_cap"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) else "N/A")
+                t_add.columns = ["Symbol", "EV/EBITDA", "Gross Margin", "Free Float", "Market Cap"]
             st.dataframe(t_add)
 
     # Final pass
     st.subheader("Final pass list")
     passed = apply_criteria(metrics, criteria) if not metrics.empty else pd.DataFrame()
-    st.dataframe(passed)
+    
+    if not passed.empty:
+        # Format final pass list with units
+        display_passed = passed.copy()
+        
+        # Format percentages
+        percentage_cols = ['revenue_cagr_3y', 'profit_cagr_3y', 'roe', 'roa', 'free_float', 'foreign_ownership', 'management_ownership']
+        for col in percentage_cols:
+            if col in display_passed.columns:
+                display_passed[col] = display_passed[col].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
+        
+        # Format ratios
+        ratio_cols = ['pe', 'pb', 'peg', 'ev_ebitda']
+        for col in ratio_cols:
+            if col in display_passed.columns:
+                display_passed[col] = display_passed[col].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
+        
+        # Format market cap and trading value
+        if 'market_cap' in display_passed.columns:
+            display_passed['market_cap'] = display_passed['market_cap'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) else "N/A")
+        
+        if 'avg_trading_value' in display_passed.columns:
+            display_passed['avg_trading_value'] = display_passed['avg_trading_value'].apply(lambda x: f"{x:.1f}B VND/day" if pd.notna(x) else "N/A")
+        
+        if 'gross_margin' in display_passed.columns:
+            display_passed['gross_margin'] = display_passed['gross_margin'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
+        
+        # Rename columns for better display
+        column_mapping = {
+            'symbol': 'Symbol',
+            'revenue_cagr_3y': 'Revenue CAGR (3Y)',
+            'profit_cagr_3y': 'Profit CAGR (3Y)',
+            'pe': 'P/E',
+            'pb': 'P/B',
+            'roe': 'ROE',
+            'roa': 'ROA',
+            'peg': 'PEG',
+            'ev_ebitda': 'EV/EBITDA',
+            'gross_margin': 'Gross Margin',
+            'free_float': 'Free Float',
+            'market_cap': 'Market Cap',
+            'foreign_ownership': 'Foreign Ownership',
+            'management_ownership': 'Management Ownership',
+            'avg_trading_value': 'Avg Trading Value'
+        }
+        
+        display_passed = display_passed.rename(columns=column_mapping)
+        st.dataframe(display_passed)
+    else:
+        st.dataframe(passed)
 
     st.download_button(
         label="Download CSV",
