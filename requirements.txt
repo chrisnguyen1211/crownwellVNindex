@@ -1,7 +1,7 @@
 streamlit>=1.36.0
 pandas>=2.0.0
 numpy>=1.24.0
-vnstock3
+vnstock>=3.2.6
 requests>=2.25.0
 beautifulsoup4>=4.9.0
 lxml>=4.6.0

@@ -1,6 +1,6 @@
 from typing import List
 import pandas as pd
-from vnstock3 import Finance, Listing
+from vnstock import Finance, Listing
 
 
 def fetch_all_tickers(exchanges: List[str] = None) -> pd.DataFrame:
