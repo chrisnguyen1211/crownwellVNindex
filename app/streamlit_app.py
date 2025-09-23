@@ -198,14 +198,39 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             free_float = scraped.get('free_float', np.nan)
             foreign_ownership = scraped.get('foreign_ownership', np.nan)
             management_ownership = scraped.get('management_ownership', np.nan)
-            # Avg trading value (billion VND/day) if available from CafeF
+            # Avg trading value (billion VND/day): prefer CafeF, else compute from TCBS 20D
             avg_trading_value = scraped.get('avg_trading_value', np.nan)
+            if pd.isna(avg_trading_value):
+                try:
+                    import requests, time
+                    now = int(time.time())
+                    start = now - 60*60*24*40
+                    url = f"https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars?ticker={sym}&type=stock&resolution=1&from={start}&to={now}"
+                    r = requests.get(url, timeout=10)
+                    if r.ok:
+                        js = r.json()
+                        data = js.get('data') if isinstance(js, dict) else None
+                        if data and len(data) >= 5:
+                            # compute average of last up to 20 days
+                            tail = data[-20:]
+                            vals = []
+                            for bar in tail:
+                                c = bar.get('close') or bar.get('c')
+                                v = bar.get('volume') or bar.get('v')
+                                if isinstance(c, (int, float)) and isinstance(v, (int, float)) and c > 0 and v > 0:
+                                    vals.append((c * v) / 1_000_000_000)
+                            if vals:
+                                avg_trading_value = float(np.mean(vals))
+                except Exception:
+                    pass
             # Ensure est_val is defined before any checks
             est_val = np.nan
 
-            # Prefer CafeF market cap if available
-            if pd.isna(market_val) and scraped and not pd.isna(scraped.get('market_cap')):
-                market_val = scraped.get('market_cap')
+            # Prefer CafeF market cap if available and reasonable (filter obvious placeholders)
+            if pd.isna(market_val) and scraped:
+                mc = scraped.get('market_cap')
+                if pd.notna(mc) and mc > 0 and mc != 1000:  # ignore suspicious flat 1000B
+                    market_val = mc
 
             # Try fetching latest close price from TCBS public API
             try:
@@ -259,6 +284,15 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Calculate market value = current price * shares outstanding (fallback)
             if pd.isna(market_val) and pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
+
+            # Sanitize percentages
+            for _col in ['free_float', 'foreign_ownership', 'management_ownership']:
+                _val = locals().get(_col)
+                if pd.notna(_val):
+                    if _val > 1:
+                        locals()[_col] = 1.0
+                    if _val < 0:
+                        locals()[_col] = 0.0
 
             # Calculate Est Val once EPS and shares known
             if pd.isna(est_val) and not latest.empty and 'earning_per_share' in latest.columns and pd.notna(shares_outstanding):

@@ -275,7 +275,16 @@ class VietnamStockDataScraper:
             # Extract number with decimal
             match = re.search(r'(\d+\.?\d*)', text)
             if match:
-                return float(match.group(1)) / 100.0  # Convert to decimal
+                val = float(match.group(1))
+                # Convert to fraction if looks like percent
+                if val > 1:
+                    val = val / 100.0
+                # Clamp to [0,1]
+                if val < 0:
+                    val = 0.0
+                if val > 1:
+                    val = 1.0
+                return val
         except:
             pass
         return None
