@@ -214,40 +214,22 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             
             # Market Valuation (Market Val) - Current market price * shares outstanding
             market_val = np.nan
-            current_price = np.nan
-            shares_outstanding = np.nan
             
-            # Try to get current price from vnstock
-            try:
-                from vnstock import Finance
-                finance = Finance(symbol=sym, source='TCBS')
-                # Try to get price from ratios data
-                if not latest.empty and 'price_to_earning' in latest.columns and 'earning_per_share' in latest.columns:
-                    pe_ratio = latest['price_to_earning'].iloc[0]
-                    eps = latest['earning_per_share'].iloc[0]
-                    if pd.notna(pe_ratio) and pd.notna(eps) and pe_ratio > 0 and eps > 0:
-                        current_price = pe_ratio * eps
-            except Exception:
-                pass
-            
-            # If no current price, estimate from P/E and EPS
-            if pd.isna(current_price) and not latest.empty and 'price_to_earning' in latest.columns and 'earning_per_share' in latest.columns:
+            # Get current price from P/E and EPS
+            if not latest.empty and 'price_to_earning' in latest.columns and 'earning_per_share' in latest.columns:
                 pe_ratio = latest['price_to_earning'].iloc[0]
                 eps = latest['earning_per_share'].iloc[0]
                 if pd.notna(pe_ratio) and pd.notna(eps) and pe_ratio > 0 and eps > 0:
                     current_price = pe_ratio * eps
-            
-            # Estimate shares outstanding from revenue and EPS
-            if pd.notna(rev_series.iloc[-1]) and not latest.empty and 'earning_per_share' in latest.columns:
-                eps = latest['earning_per_share'].iloc[0]
-                if pd.notna(eps) and eps > 0:
-                    # Estimate shares = Revenue / (EPS * Revenue per share ratio)
-                    revenue_per_share_ratio = 0.1  # Typical ratio
-                    shares_outstanding = rev_series.iloc[-1] / (eps * revenue_per_share_ratio)
-            
-            # Calculate market value = current price * shares outstanding
-            if pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
-                market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
+                    
+                    # Estimate shares outstanding from revenue and EPS
+                    if pd.notna(rev_series.iloc[-1]):
+                        # Revenue is in billions VND, EPS is in VND
+                        # Shares = Revenue (billion VND) / (EPS (VND) * 1e-9) to convert to shares
+                        shares_outstanding = (rev_series.iloc[-1] * 1_000_000_000) / eps
+                        
+                        # Calculate market value = current price * shares outstanding
+                        market_val = (current_price * shares_outstanding) / 1_000_000_000  # Convert to billion VND
 
             rows.append(
                 dict(
@@ -262,7 +244,6 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     ev_ebitda=ev_ebitda,
                     gross_margin=gross_margin,
                     free_float=free_float,
-                    market_cap=market_cap,
                     foreign_ownership=foreign_ownership,
                     management_ownership=management_ownership,
                     avg_trading_value=avg_trading_value,
@@ -335,7 +316,6 @@ if scan:
         "ev_ebitda",
         "gross_margin",
         "free_float",
-        "market_cap",
         "foreign_ownership",
         "management_ownership",
         "avg_trading_value",
@@ -357,10 +337,7 @@ if scan:
             if col in display_metrics.columns:
                 display_metrics[col] = display_metrics[col].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
         
-        # Format market cap and trading value (billion VND)
-        if 'market_cap' in display_metrics.columns:
-            display_metrics['market_cap'] = display_metrics['market_cap'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
-        
+        # Format trading value (billion VND)
         if 'avg_trading_value' in display_metrics.columns:
             display_metrics['avg_trading_value'] = display_metrics['avg_trading_value'].apply(lambda x: f"{x:.1f}B VND/day" if pd.notna(x) and x > 0 else "N/A")
         
@@ -444,23 +421,20 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","market_cap","est_val","market_val"]].copy()
+            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","est_val","market_val"]].copy()
             if criteria["max_ev_ebitda"] > 0:
                 t_add = t_add[t_add["ev_ebitda"].fillna(10**9) <= criteria["max_ev_ebitda"]]
             if criteria["min_gross_margin"] > 0:
                 t_add = t_add[t_add["gross_margin"].fillna(-1) >= criteria["min_gross_margin"]]
             if criteria["min_free_float"] > 0:
                 t_add = t_add[t_add["free_float"].fillna(-1) >= criteria["min_free_float"] / 100.0]
-            if criteria["min_market_cap_billion"] > 0:
-                t_add = t_add[t_add["market_cap"].fillna(-1) >= criteria["min_market_cap_billion"]]
             if not t_add.empty:
                 t_add["ev_ebitda"] = t_add["ev_ebitda"].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
                 t_add["gross_margin"] = t_add["gross_margin"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
                 t_add["free_float"] = t_add["free_float"].apply(lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
-                t_add["market_cap"] = t_add["market_cap"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
                 t_add["est_val"] = t_add["est_val"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
                 t_add["market_val"] = t_add["market_val"].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
-                t_add.columns = ["Symbol", "EV/EBITDA", "Gross Margin", "Free Float", "Market Cap", "Est Val", "Market Val"]
+                t_add.columns = ["Symbol", "EV/EBITDA", "Gross Margin", "Free Float", "Est Val", "Market Val"]
             st.dataframe(t_add)
 
     # Final pass
@@ -483,10 +457,7 @@ if scan:
             if col in display_passed.columns:
                 display_passed[col] = display_passed[col].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else "N/A")
         
-        # Format market cap and trading value
-        if 'market_cap' in display_passed.columns:
-            display_passed['market_cap'] = display_passed['market_cap'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) else "N/A")
-        
+        # Format trading value
         if 'avg_trading_value' in display_passed.columns:
             display_passed['avg_trading_value'] = display_passed['avg_trading_value'].apply(lambda x: f"{x:.1f}B VND/day" if pd.notna(x) else "N/A")
         
@@ -513,7 +484,6 @@ if scan:
             'ev_ebitda': 'EV/EBITDA',
             'gross_margin': 'Gross Margin',
             'free_float': 'Free Float',
-            'market_cap': 'Market Cap',
             'foreign_ownership': 'Foreign Ownership',
             'management_ownership': 'Management Ownership',
             'avg_trading_value': 'Avg Trading Value',
