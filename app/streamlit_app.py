@@ -154,7 +154,9 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     # Estimate shares from revenue (more realistic)
                     if pd.notna(rev_series.iloc[-1]) and rev_series.iloc[-1] > 0:
                         # Estimate shares based on revenue per share
-                        estimated_shares = rev_series.iloc[-1] / (eps * 0.1)  # Revenue/EPS ratio
+                        # Revenue is already in billions VND from vnstock API
+                        revenue = rev_series.iloc[-1]
+                        estimated_shares = revenue / (eps * 0.1)
                         market_cap = (price_per_share * estimated_shares) / 1_000_000_000  # Convert to billion VND
             
             # If market cap still NaN, try alternative method
@@ -172,7 +174,8 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             if pd.isna(market_cap) and pd.notna(rev_series.iloc[-1]) and rev_series.iloc[-1] > 0:
                 # Simple estimation: market cap = revenue * 2-5x
                 revenue_multiple = np.random.uniform(2.0, 5.0)
-                market_cap = (rev_series.iloc[-1] * revenue_multiple) / 1_000_000_000
+                # Revenue is already in billions VND from vnstock API
+                market_cap = rev_series.iloc[-1] * revenue_multiple
             
             # Free float estimation (typical range for Vietnamese stocks)
             free_float = np.random.uniform(0.15, 0.85) if np.random.random() > 0.3 else np.nan
@@ -201,7 +204,9 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                 # DCF-like estimation: Revenue * Growth * ROE * Multiple
                 growth_factor = 1 + prof_cagr  # Growth rate
                 profitability_factor = roe_val if pd.notna(roe_val) else 0.15  # ROE
-                revenue_base = rev_series.iloc[-1] / 1_000_000_000  # Convert to billion VND
+                
+                # Revenue is already in billions VND from vnstock API
+                revenue_base = rev_series.iloc[-1]
                 
                 # Intrinsic value = Revenue * (1 + Growth) * ROE * Industry Multiple
                 industry_multiple = np.random.uniform(8.0, 15.0)  # Industry P/E range
@@ -214,11 +219,14 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             
             # Try to get current price from vnstock
             try:
-                from vnstock import Stock
-                stock = Stock(symbol=sym, source='TCBS')
-                price_data = stock.history(period='1d')
-                if not price_data.empty:
-                    current_price = price_data['close'].iloc[-1]  # Latest closing price
+                from vnstock import Finance
+                finance = Finance(symbol=sym, source='TCBS')
+                # Try to get price from ratios data
+                if not latest.empty and 'price_to_earning' in latest.columns and 'earning_per_share' in latest.columns:
+                    pe_ratio = latest['price_to_earning'].iloc[0]
+                    eps = latest['earning_per_share'].iloc[0]
+                    if pd.notna(pe_ratio) and pd.notna(eps) and pe_ratio > 0 and eps > 0:
+                        current_price = pe_ratio * eps
             except Exception:
                 pass
             
