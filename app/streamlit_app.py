@@ -187,6 +187,11 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                 # Revenue is already in billions VND from vnstock API
                 market_cap = rev_series.iloc[-1] * revenue_multiple
             
+            # Initialize valuation vars before any use
+            market_val = np.nan
+            current_price = np.nan
+            shares_outstanding = np.nan
+
             # Prefer real data from CafeF/Vietstock scraper
             scraped = _scraper.get_stock_overview(sym)
 
