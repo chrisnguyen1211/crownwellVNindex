@@ -124,14 +124,6 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             pb = latest["price_to_book"].iloc[0] if "price_to_book" in latest.columns and len(latest) else np.nan
             roe_val = latest["roe"].iloc[0] if "roe" in latest.columns and len(latest) else np.nan
             roa_val = latest["roa"].iloc[0] if "roa" in latest.columns and len(latest) else np.nan
-            
-            # Use scraped P/E and P/B if available
-            scraped_pe = scraped.get('pe_ratio', np.nan)
-            scraped_pb = scraped.get('pb_ratio', np.nan)
-            if pd.notna(scraped_pe) and scraped_pe > 0:
-                pe = scraped_pe
-            if pd.notna(scraped_pb) and scraped_pb > 0:
-                pb = scraped_pb
 
             # If ROE/ROA missing, compute from statements
             if pd.isna(roe_val) or pd.isna(roa_val):
@@ -213,6 +205,14 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                 scraped = _scraper.get_stock_overview(sym)
             except Exception:
                 scraped = {}
+
+            # Use scraped P/E and P/B if available
+            scraped_pe = scraped.get('pe_ratio', np.nan)
+            scraped_pb = scraped.get('pb_ratio', np.nan)
+            if pd.notna(scraped_pe) and scraped_pe > 0:
+                pe = scraped_pe
+            if pd.notna(scraped_pb) and scraped_pb > 0:
+                pb = scraped_pb
 
             free_float = scraped.get('free_float', np.nan)
             foreign_ownership = scraped.get('foreign_ownership', np.nan)
