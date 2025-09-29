@@ -206,9 +206,13 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             market_val = np.nan
             current_price = np.nan
             shares_outstanding = np.nan
+            scraped = {}
 
             # Prefer real data from CafeF/Vietstock scraper
-            scraped = _scraper.get_stock_overview(sym)
+            try:
+                scraped = _scraper.get_stock_overview(sym)
+            except Exception:
+                scraped = {}
 
             free_float = scraped.get('free_float', np.nan)
             foreign_ownership = scraped.get('foreign_ownership', np.nan)
