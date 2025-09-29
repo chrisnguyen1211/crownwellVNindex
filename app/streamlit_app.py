@@ -224,42 +224,48 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             free_float = scraped.get('free_float', np.nan)
             foreign_ownership = scraped.get('foreign_ownership', np.nan)
             management_ownership = scraped.get('management_ownership', np.nan)
-            # Avg trading value (billion VND/day): prefer CafeF, else compute from TCBS 20D
-            avg_trading_value = scraped.get('avg_trading_value', np.nan)
-            if pd.isna(avg_trading_value):
-                try:
-                    import requests, time
-                    now = int(time.time())
-                    start = now - 60*60*24*40
-                    url = f"https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars?ticker={sym}&type=stock&resolution=1&from={start}&to={now}"
-                    r = requests.get(url, timeout=10)
-                    if r.ok:
-                        js = r.json()
-                        data = js.get('data') if isinstance(js, dict) else None
-                        if data and len(data) >= 5:
-                            # compute average of last up to 20 days
-                            tail = data[-20:]
-                            vals = []
-                            for bar in tail:
-                                c = bar.get('close') or bar.get('c')
-                                v = bar.get('volume') or bar.get('v')
-                                if isinstance(c, (int, float)) and isinstance(v, (int, float)) and c > 0 and v > 0:
-                                    vals.append((c * v) / 1_000_000_000)
-                            if vals:
-                                avg_trading_value = float(np.mean(vals))
-                except Exception:
-                    pass
+            # Avg trading value calculation: KLGD (shares) * price = trading value in VND
+            # Unit conversion: HOSE: 10 shares, HNX/UPCOM: 100 shares
+            klgd_shares = scraped.get('klgd_shares', np.nan)
+            if pd.notna(klgd_shares) and pd.notna(current_price) and current_price > 0:
+                # Assume HOSE (most VN30 stocks are on HOSE) - multiply by 10 for unit conversion
+                klgd_actual_shares = klgd_shares * 10  # HOSE unit conversion
+                avg_trading_value = (klgd_actual_shares * current_price) / 1_000_000_000  # Convert to billion VND
+            else:
+                # Fallback: use existing TCBS API method
+                avg_trading_value = scraped.get('avg_trading_value', np.nan)
+                if pd.isna(avg_trading_value):
+                    try:
+                        import requests, time
+                        now = int(time.time())
+                        start = now - 60*60*24*40
+                        url = f"https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars?ticker={sym}&type=stock&resolution=1&from={start}&to={now}"
+                        r = requests.get(url, timeout=10)
+                        if r.ok:
+                            js = r.json()
+                            data = js.get('data') if isinstance(js, dict) else None
+                            if data and len(data) >= 5:
+                                # compute average of last up to 20 days
+                                tail = data[-20:]
+                                vals = []
+                                for bar in tail:
+                                    c = bar.get('close') or bar.get('c')
+                                    v = bar.get('volume') or bar.get('v')
+                                    if isinstance(c, (int, float)) and isinstance(v, (int, float)) and c > 0 and v > 0:
+                                        vals.append((c * v) / 1_000_000_000)
+                                if vals:
+                                    avg_trading_value = float(np.mean(vals))
+                        except Exception:
+                            pass
             # Ensure est_val is defined before any checks
             est_val = np.nan
 
-            market_val_source = 'unknown'
             # Prefer CafeF market cap if available; do NOT override when present
             if scraped:
                 mc = scraped.get('market_cap')
                 # Accept only if within plausible bounds (1B - 10,000,000B) and not placeholder
                 if pd.notna(mc) and 1 <= mc <= 10_000_000 and mc != 1000:
                     market_val = mc
-                    market_val_source = 'cafef'
 
             # If CafeF missing, fetch latest price from TCBS and compute price * shares
             if pd.isna(market_val):
@@ -318,7 +324,6 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Fallback to price * shares if CafeF missing and we have price and shares
             if pd.isna(market_val) and pd.notna(current_price) and pd.notna(shares_outstanding) and current_price > 0 and shares_outstanding > 0:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000
-                market_val_source = 'price_x_shares'
 
             # Sanitize percentages - ensure they're in [0,1] range
             for _col in ['free_float', 'foreign_ownership', 'management_ownership']:
@@ -386,7 +391,6 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     avg_trading_value=avg_trading_value,
                     est_val=est_val,
                     market_val=market_val,
-                    market_val_source=market_val_source,
                 )
             )
         except Exception as e:
@@ -459,7 +463,6 @@ if scan:
         "avg_trading_value",
         "est_val",
         "market_val",
-        "market_val_source",
     ]
     for col in required_cols:
         if col not in metrics.columns:
@@ -506,8 +509,6 @@ if scan:
         
         if 'market_val' in display_metrics.columns:
             display_metrics['market_val'] = display_metrics['market_val'].apply(lambda x: f"{x:.1f}B VND" if pd.notna(x) and x > 0 else "N/A")
-        if 'market_val_source' in display_metrics.columns:
-            display_metrics['market_val_source'] = display_metrics['market_val_source'].fillna('')
         
         raw_column_config = {
             'revenue_cagr_3y': st.column_config.TextColumn(
@@ -583,7 +584,7 @@ if scan:
         if metrics.empty:
             st.dataframe(pd.DataFrame())
         else:
-            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","est_val","market_val","market_val_source"]].copy()
+            t_add = metrics[["symbol","ev_ebitda","gross_margin","free_float","est_val","market_val"]].copy()
             if criteria["max_ev_ebitda"] > 0:
                 t_add = t_add[t_add["ev_ebitda"].fillna(10**9) <= criteria["max_ev_ebitda"]]
             if criteria["min_gross_margin"] > 0:
@@ -659,7 +660,6 @@ if scan:
             'avg_trading_value': 'Avg Trading Value',
             'est_val': 'Est Val',
             'market_val': 'Market Val',
-            'market_val_source': 'Market Val Source'
         }
         
         display_passed = display_passed.rename(columns=column_mapping)

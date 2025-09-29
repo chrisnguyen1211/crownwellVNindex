@@ -124,6 +124,16 @@ class VietnamStockDataScraper:
                         data['outstanding_shares'] = shares
                         break
             
+            # KLGD (trading volume in shares) - Vietstock Finance specific
+            klgd_labels = ["KLGD", "Khối lượng giao dịch", "Trading Volume", "Khối lượng GD", "Volume"]
+            for label in klgd_labels:
+                klgd_text = self._extract_text_by_label(soup, label)
+                if klgd_text:
+                    klgd_shares = self._parse_number(klgd_text)
+                    if klgd_shares is not None and klgd_shares > 0:
+                        data['klgd_shares'] = klgd_shares
+                        break
+            
             # P/E and P/B ratios - Vietstock Finance specific patterns
             pe_labels = [
                 "P/E cơ bản", "P/E", "PE", "Price to Earning", 
@@ -389,8 +399,9 @@ class VietnamStockDataScraper:
                 'roa': [r'ROAA[:\s]*([\d,]+\.?\d*)', r'ROA[:\s]*([\d,]+\.?\d*)', r'Return on Assets[:\s]*([\d,]+\.?\d*)'],
                 'market cap': [r'Vốn hóa thị trường[:\s]*([\d,]+\.?\d*)', r'Market Cap[:\s]*([\d,]+\.?\d*)', r'Vốn hóa[:\s]*([\d,]+\.?\d*)'],
                 'free float': [r'Free Float[:\s]*([\d,]+\.?\d*)', r'Tỷ lệ cổ phiếu lưu hành[:\s]*([\d,]+\.?\d*)'],
-                'foreign ownership': [r'Foreign Ownership[:\s]*([\d,]+\.?\d*)', r'Tỷ lệ sở hữu nước ngoài[:\s]*([\d,]+\.?\d*)'],
-                'outstanding shares': [r'Outstanding Shares[:\s]*([\d,]+\.?\d*)', r'Số cổ phiếu lưu hành[:\s]*([\d,]+\.?\d*)']
+                'foreign ownership': [r'Foreign Ownership[:\s]*([\d,]+\.?\d*)', r'Tỷ lệ sở hữu nước ngoài[:\s]*([\d,]+\.?\d*)', r'% NN sở hữu[:\s]*([\d,]+\.?\d*)', r'% NN[:\s]*([\d,]+\.?\d*)'],
+                'outstanding shares': [r'Outstanding Shares[:\s]*([\d,]+\.?\d*)', r'Số cổ phiếu lưu hành[:\s]*([\d,]+\.?\d*)'],
+                'trading volume': [r'KLGD[:\s]*([\d,]+\.?\d*)', r'Khối lượng giao dịch[:\s]*([\d,]+\.?\d*)', r'Trading Volume[:\s]*([\d,]+\.?\d*)']
             }
             
             # Find matching patterns
