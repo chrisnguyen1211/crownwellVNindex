@@ -374,9 +374,38 @@ class VietnamStockDataScraper:
         return data
     
     def _extract_text_by_label(self, soup: BeautifulSoup, label: str) -> Optional[str]:
-        """Extract text value by label"""
+        """Extract text value by label using regex patterns"""
         try:
-            # Method 1: Look for table rows with label and value
+            import re
+            
+            # Get full page text
+            page_text = soup.get_text()
+            
+            # Define patterns for different labels
+            patterns = {
+                'p/e': [r'P/E[:\s]*([\d,]+\.?\d*)', r'P/E cơ bản[:\s]*([\d,]+\.?\d*)', r'Price to Earning[:\s]*([\d,]+\.?\d*)'],
+                'p/b': [r'P/B[:\s]*([\d,]+\.?\d*)', r'P/B cơ bản[:\s]*([\d,]+\.?\d*)', r'Price to Book[:\s]*([\d,]+\.?\d*)'],
+                'roe': [r'ROEA[:\s]*([\d,]+\.?\d*)', r'ROE[:\s]*([\d,]+\.?\d*)', r'Return on Equity[:\s]*([\d,]+\.?\d*)'],
+                'roa': [r'ROAA[:\s]*([\d,]+\.?\d*)', r'ROA[:\s]*([\d,]+\.?\d*)', r'Return on Assets[:\s]*([\d,]+\.?\d*)'],
+                'market cap': [r'Vốn hóa thị trường[:\s]*([\d,]+\.?\d*)', r'Market Cap[:\s]*([\d,]+\.?\d*)', r'Vốn hóa[:\s]*([\d,]+\.?\d*)'],
+                'free float': [r'Free Float[:\s]*([\d,]+\.?\d*)', r'Tỷ lệ cổ phiếu lưu hành[:\s]*([\d,]+\.?\d*)'],
+                'foreign ownership': [r'Foreign Ownership[:\s]*([\d,]+\.?\d*)', r'Tỷ lệ sở hữu nước ngoài[:\s]*([\d,]+\.?\d*)'],
+                'outstanding shares': [r'Outstanding Shares[:\s]*([\d,]+\.?\d*)', r'Số cổ phiếu lưu hành[:\s]*([\d,]+\.?\d*)']
+            }
+            
+            # Find matching patterns
+            label_lower = label.lower()
+            for key, pattern_list in patterns.items():
+                if key in label_lower:
+                    for pattern in pattern_list:
+                        matches = re.findall(pattern, page_text, re.IGNORECASE)
+                        for match in matches:
+                            # Clean the match
+                            clean_match = match.replace(',', '')
+                            if clean_match and clean_match != '1000' and clean_match != '1':
+                                return clean_match
+            
+            # Fallback: original table-based approach
             rows = soup.find_all('tr')
             for row in rows:
                 cells = row.find_all(['td', 'th'])
@@ -385,7 +414,7 @@ class VietnamStockDataScraper:
                     if label.lower() in cell_text:
                         if i + 1 < len(cells):
                             value = cells[i + 1].get_text(strip=True)
-                            if value and value != '':
+                            if value and value != '' and value != '1000' and value != '1':
                                 return value
             
             # Method 2: Look for divs with label and value
