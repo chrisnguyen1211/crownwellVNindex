@@ -124,6 +124,14 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             pb = latest["price_to_book"].iloc[0] if "price_to_book" in latest.columns and len(latest) else np.nan
             roe_val = latest["roe"].iloc[0] if "roe" in latest.columns and len(latest) else np.nan
             roa_val = latest["roa"].iloc[0] if "roa" in latest.columns and len(latest) else np.nan
+            
+            # Use scraped P/E and P/B if available
+            scraped_pe = scraped.get('pe_ratio', np.nan)
+            scraped_pb = scraped.get('pb_ratio', np.nan)
+            if pd.notna(scraped_pe) and scraped_pe > 0:
+                pe = scraped_pe
+            if pd.notna(scraped_pb) and scraped_pb > 0:
+                pb = scraped_pb
 
             # If ROE/ROA missing, compute from statements
             if pd.isna(roe_val) or pd.isna(roa_val):
@@ -237,7 +245,7 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Prefer CafeF market cap if available; do NOT override when present
             if scraped:
                 mc = scraped.get('market_cap')
-                # Accept only if within plausible bounds (1B - 10,000,000B)
+                # Accept only if within plausible bounds (1B - 10,000,000B) and not placeholder
                 if pd.notna(mc) and 1 <= mc <= 10_000_000 and mc != 1000:
                     market_val = mc
                     market_val_source = 'cafef'
@@ -301,13 +309,13 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                 market_val = (current_price * shares_outstanding) / 1_000_000_000
                 market_val_source = 'price_x_shares'
 
-            # Sanitize percentages
+            # Sanitize percentages - ensure they're in [0,1] range
             for _col in ['free_float', 'foreign_ownership', 'management_ownership']:
                 _val = locals().get(_col)
                 if pd.notna(_val):
                     if _val > 1:
                         locals()[_col] = 1.0
-                    if _val < 0:
+                    elif _val < 0:
                         locals()[_col] = 0.0
 
             # Calculate Est Val via simple DCF (fallback to EPS approach if cash flow missing)

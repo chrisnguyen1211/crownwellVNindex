@@ -27,7 +27,9 @@ class VietnamStockDataScraper:
             'foreign_ownership': np.nan,
             'management_ownership': np.nan,
             'avg_trading_value': np.nan,
-            'outstanding_shares': np.nan
+            'outstanding_shares': np.nan,
+            'pe_ratio': np.nan,
+            'pb_ratio': np.nan
         }
         
         try:
@@ -56,10 +58,12 @@ class VietnamStockDataScraper:
         try:
             # Try different Vietstock URL patterns
             urls = [
+                f"https://finance.vietstock.vn/{symbol.lower()}-ctcp.htm",
+                f"https://finance.vietstock.vn/{symbol.upper()}-ctcp.htm",
+                f"https://finance.vietstock.vn/{symbol.lower()}.htm",
+                f"https://finance.vietstock.vn/{symbol.upper()}.htm",
                 f"https://finance.vietstock.vn/doanh-nghiep-a/{symbol.lower()}-cong-ty-co-phan.htm",
-                f"https://finance.vietstock.vn/doanh-nghiep-a/{symbol.upper()}-cong-ty-co-phan.htm",
-                f"https://finance.vietstock.vn/doanh-nghiep-a/{symbol.lower()}.htm",
-                f"https://finance.vietstock.vn/doanh-nghiep-a/{symbol.upper()}.htm"
+                f"https://finance.vietstock.vn/doanh-nghiep-a/{symbol.upper()}-cong-ty-co-phan.htm"
             ]
             
             response = None
@@ -118,6 +122,25 @@ class VietnamStockDataScraper:
                         data['outstanding_shares'] = shares
                         break
             
+            # P/E and P/B ratios
+            pe_labels = ["P/E", "PE", "Price to Earning", "Hệ số P/E", "Tỷ số P/E", "Giá trên thu nhập"]
+            for label in pe_labels:
+                pe_text = self._extract_text_by_label(soup, label)
+                if pe_text:
+                    pe_ratio = self._parse_number(pe_text)
+                    if pe_ratio is not None and pe_ratio > 0:
+                        data['pe_ratio'] = pe_ratio
+                        break
+            
+            pb_labels = ["P/B", "PB", "Price to Book", "Hệ số P/B", "Tỷ số P/B", "Giá trên giá trị sổ sách"]
+            for label in pb_labels:
+                pb_text = self._extract_text_by_label(soup, label)
+                if pb_text:
+                    pb_ratio = self._parse_number(pb_text)
+                    if pb_ratio is not None and pb_ratio > 0:
+                        data['pb_ratio'] = pb_ratio
+                        break
+            
         except Exception as e:
             logger.warning(f"Error scraping Vietstock for {symbol}: {e}")
         
@@ -128,25 +151,18 @@ class VietnamStockDataScraper:
         data = {}
         
         try:
-            # Try different CafeF URL patterns
+            # Try different CafeF URL patterns - prioritize the working ones
             urls = [
+                # cafef.vn du-lieu with company slug patterns (most reliable)
+                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hose/{symbol.upper()}-cong-ty-co-phan-{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}-cong-ty-co-phan-{symbol.upper()}.chn",
+                # Simple symbol pages
+                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}.chn",
+                f"https://cafef.vn/du-lieu/hose/{symbol.upper()}.chn",
                 # s.cafef.vn patterns
                 f"https://s.cafef.vn/hose/{symbol.lower()}-ctcp.chn",
                 f"https://s.cafef.vn/hose/{symbol.upper()}-ctcp.chn",
-                f"https://s.cafef.vn/hnx/{symbol.lower()}-ctcp.chn",
-                f"https://s.cafef.vn/hnx/{symbol.upper()}-ctcp.chn",
-                f"https://s.cafef.vn/upcom/{symbol.lower()}-ctcp.chn",
-                f"https://s.cafef.vn/upcom/{symbol.upper()}-ctcp.chn",
-                # cafef.vn du-lieu simple symbol pages
-                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}.chn",
-                f"https://cafef.vn/du-lieu/hose/{symbol.upper()}.chn",
-                f"https://cafef.vn/du-lieu/hnx/{symbol.lower()}.chn",
-                f"https://cafef.vn/du-lieu/hnx/{symbol.upper()}.chn",
-                f"https://cafef.vn/du-lieu/upcom/{symbol.lower()}.chn",
-                f"https://cafef.vn/du-lieu/upcom/{symbol.upper()}.chn",
-                # cafef.vn du-lieu with company slug patterns (common)
-                f"https://cafef.vn/du-lieu/hose/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
-                f"https://cafef.vn/du-lieu/hose/{symbol.upper()}-cong-ty-co-phan-{symbol.lower()}.chn",
                 f"https://cafef.vn/du-lieu/hnx/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
                 f"https://cafef.vn/du-lieu/upcom/{symbol.lower()}-cong-ty-co-phan-{symbol.lower()}.chn",
             ]
@@ -171,11 +187,11 @@ class VietnamStockDataScraper:
                 logger.info(f"CafeF page content for {symbol}: {soup.get_text()[:500]}...")
             
             # CafeF common fields (explicit labels)
-            # 1) Market cap (tỷ đồng)
+            # 1) Market cap (tỷ đồng) - filter out placeholder values
             mc_text = self._extract_text_by_label(soup, "Vốn hóa thị trường (tỷ đồng)")
             if mc_text:
                 mc_val = self._parse_market_cap(mc_text)
-                if mc_val is not None:
+                if mc_val is not None and mc_val > 0 and mc_val != 1000:
                     data['market_cap'] = mc_val
 
             # 2) Foreign ownership (%)
@@ -206,6 +222,25 @@ class VietnamStockDataScraper:
                 ff_val = self._parse_percentage(ff_text)
                 if ff_val is not None:
                     data['free_float'] = ff_val
+
+            # 5) P/E and P/B ratios from CafeF
+            pe_labels = ["P/E", "PE", "Price to Earning", "Hệ số P/E", "Tỷ số P/E", "Giá trên thu nhập"]
+            for label in pe_labels:
+                pe_text = self._extract_text_by_label(soup, label)
+                if pe_text:
+                    pe_ratio = self._parse_number(pe_text)
+                    if pe_ratio is not None and pe_ratio > 0:
+                        data['pe_ratio'] = pe_ratio
+                        break
+            
+            pb_labels = ["P/B", "PB", "Price to Book", "Hệ số P/B", "Tỷ số P/B", "Giá trên giá trị sổ sách"]
+            for label in pb_labels:
+                pb_text = self._extract_text_by_label(soup, label)
+                if pb_text:
+                    pb_ratio = self._parse_number(pb_text)
+                    if pb_ratio is not None and pb_ratio > 0:
+                        data['pb_ratio'] = pb_ratio
+                        break
 
             # Try multiple label variations for trading volume
             volume_labels = ["Khối lượng giao dịch TB", "Khối lượng TB", "Trading volume", "Giao dịch TB", "KLGD TB"]
@@ -246,7 +281,7 @@ class VietnamStockDataScraper:
                         if m:
                             num_txt = m.group(1)
                             mc_val = self._parse_market_cap(num_txt)
-                            if mc_val is not None and mc_val > 0:
+                            if mc_val is not None and mc_val > 0 and mc_val != 1000:
                                 data['market_cap'] = mc_val
                                 break
                 except Exception:
