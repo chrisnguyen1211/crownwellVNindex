@@ -4,21 +4,13 @@ from vnstock import Finance, Listing
 
 
 def fetch_all_tickers(exchanges: List[str] = None) -> pd.DataFrame:
-    exchanges = exchanges or ["HOSE", "HNX", "UPCOM"]
-    ls = Listing()
-    frames = []
-    for ex in exchanges:
-        try:
-            df = ls.symbols_by_exchange(exchange=ex)
-            df["exchange"] = ex
-            frames.append(df[["symbol", "exchange"]])
-        except Exception:
-            continue
-    if frames:
-        return pd.concat(frames, ignore_index=True)
-    # Fallback static universe if API returns nothing
-    fallback = ["FPT","MWG","VCB","VNM","HPG","VHM","VIC","SSI","GAS","ACB"]
-    return pd.DataFrame({"symbol": fallback, "exchange": ["HOSE"]*len(fallback)})
+    # VN30 stocks only for faster processing
+    vn30_stocks = [
+        "ACB", "BCM", "BID", "BVH", "CTG", "FPT", "GAS", "GVR", "HDB", "HPG",
+        "MBB", "MSN", "MWG", "PLX", "POW", "SAB", "SSI", "STB", "TCB", "TPB",
+        "VCB", "VHM", "VIB", "VIC", "VJC", "VNM", "VPB", "VRE", "VSH", "VTO"
+    ]
+    return pd.DataFrame({"symbol": vn30_stocks, "exchange": ["HOSE"]*len(vn30_stocks)})
 
 
 def fetch_income_statement(symbol: str) -> pd.DataFrame:
