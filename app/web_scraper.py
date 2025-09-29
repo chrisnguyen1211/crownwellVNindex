@@ -29,7 +29,9 @@ class VietnamStockDataScraper:
             'avg_trading_value': np.nan,
             'outstanding_shares': np.nan,
             'pe_ratio': np.nan,
-            'pb_ratio': np.nan
+            'pb_ratio': np.nan,
+            'roe': np.nan,
+            'roa': np.nan
         }
         
         try:
@@ -122,23 +124,56 @@ class VietnamStockDataScraper:
                         data['outstanding_shares'] = shares
                         break
             
-            # P/E and P/B ratios
-            pe_labels = ["P/E", "PE", "Price to Earning", "Hệ số P/E", "Tỷ số P/E", "Giá trên thu nhập"]
+            # P/E and P/B ratios - Vietstock Finance specific patterns
+            pe_labels = [
+                "P/E cơ bản", "P/E", "PE", "Price to Earning", 
+                "Hệ số P/E", "Tỷ số P/E", "Giá trên thu nhập",
+                "P/E (TTM)", "P/E trailing", "P/E ratio"
+            ]
             for label in pe_labels:
                 pe_text = self._extract_text_by_label(soup, label)
                 if pe_text:
                     pe_ratio = self._parse_number(pe_text)
-                    if pe_ratio is not None and pe_ratio > 0:
+                    if pe_ratio is not None and pe_ratio > 0 and pe_ratio < 1000:  # Sanity check
                         data['pe_ratio'] = pe_ratio
                         break
             
-            pb_labels = ["P/B", "PB", "Price to Book", "Hệ số P/B", "Tỷ số P/B", "Giá trên giá trị sổ sách"]
+            pb_labels = [
+                "P/B cơ bản", "P/B", "PB", "Price to Book", 
+                "Hệ số P/B", "Tỷ số P/B", "Giá trên giá trị sổ sách",
+                "P/BV", "P/B ratio", "Price-to-Book"
+            ]
             for label in pb_labels:
                 pb_text = self._extract_text_by_label(soup, label)
                 if pb_text:
                     pb_ratio = self._parse_number(pb_text)
-                    if pb_ratio is not None and pb_ratio > 0:
+                    if pb_ratio is not None and pb_ratio > 0 and pb_ratio < 100:  # Sanity check
                         data['pb_ratio'] = pb_ratio
+                        break
+            
+            # ROE and ROA from Vietstock Finance
+            roe_labels = [
+                "ROEA", "ROE", "Return on Equity", "Tỷ suất sinh lời trên vốn chủ sở hữu",
+                "ROE cơ bản", "ROE annualized", "Return on Equity Annualized"
+            ]
+            for label in roe_labels:
+                roe_text = self._extract_text_by_label(soup, label)
+                if roe_text:
+                    roe_val = self._parse_percentage(roe_text)
+                    if roe_val is not None and roe_val > 0:
+                        data['roe'] = roe_val
+                        break
+            
+            roa_labels = [
+                "ROAA", "ROA", "Return on Assets", "Tỷ suất sinh lời trên tài sản",
+                "ROA cơ bản", "ROA annualized", "Return on Assets Annualized"
+            ]
+            for label in roa_labels:
+                roa_text = self._extract_text_by_label(soup, label)
+                if roa_text:
+                    roa_val = self._parse_percentage(roa_text)
+                    if roa_val is not None and roa_val > 0:
+                        data['roa'] = roa_val
                         break
             
         except Exception as e:

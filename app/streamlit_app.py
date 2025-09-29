@@ -209,10 +209,17 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
             # Use scraped P/E and P/B if available
             scraped_pe = scraped.get('pe_ratio', np.nan)
             scraped_pb = scraped.get('pb_ratio', np.nan)
+            scraped_roe = scraped.get('roe', np.nan)
+            scraped_roa = scraped.get('roa', np.nan)
+            
             if pd.notna(scraped_pe) and scraped_pe > 0:
                 pe = scraped_pe
             if pd.notna(scraped_pb) and scraped_pb > 0:
                 pb = scraped_pb
+            if pd.notna(scraped_roe) and scraped_roe > 0:
+                roe_val = scraped_roe
+            if pd.notna(scraped_roa) and scraped_roa > 0:
+                roa_val = scraped_roa
 
             free_float = scraped.get('free_float', np.nan)
             foreign_ownership = scraped.get('foreign_ownership', np.nan)
