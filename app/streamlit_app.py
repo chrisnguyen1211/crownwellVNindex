@@ -16,12 +16,156 @@ from helpers import (
 from web_scraper import VietnamStockDataScraper
 
 
-st.set_page_config(page_title="VN Stock Screener", layout="wide")
+st.set_page_config(
+    page_title="Crownwell VNIndex Screener",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-st.title("Crownwell VNIndex Screener: Quantitative data")
+# Custom CSS to match TitanLabs style
+st.markdown("""
+<style>
+    /* Main container styling */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+    
+    /* Header styling */
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 0;
+        margin: -2rem -1rem 2rem -1rem;
+        border-radius: 0 0 20px 20px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .main-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .main-header p {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.1rem;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    /* Card styling */
+    .metric-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #e1e5e9;
+        margin-bottom: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    
+    .metric-card h3 {
+        color: #2c3e50;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 0.5rem;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .sidebar .sidebar-content {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    /* Data table styling */
+    .dataframe {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    /* Status indicators */
+    .status-pass {
+        background: #d4edda;
+        color: #155724;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-fail {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    /* Loading spinner */
+    .loading-container {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 2rem 0;
+        margin-top: 3rem;
+        border-top: 1px solid #e1e5e9;
+        color: #6c757d;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Sidebar controls mapped from your criteria table (defaults can be adjusted)
-st.sidebar.header("Criteria")
+# Header section with TitanLabs-style design
+st.markdown("""
+<div class="main-header">
+    <h1>📊 Crownwell VNIndex Screener</h1>
+    <p>Advanced Quantitative Stock Analysis & Screening Platform</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Sidebar controls with TitanLabs-style design
+st.sidebar.markdown("""
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+    <h3 style="color: white; margin: 0; text-align: center;">🎯 Screening Criteria</h3>
+</div>
+""", unsafe_allow_html=True)
 criteria: Dict[str, float] = {}
 criteria["min_revenue_cagr_3y"] = st.sidebar.number_input(
     "Min Revenue CAGR (3Y)", min_value=0.0, max_value=1.0, value=0.12, step=0.01
@@ -73,7 +217,14 @@ side_by_side = st.sidebar.checkbox(
     "Show per-criterion tables side-by-side", value=True
 )
 
-scan = st.button("Scan now")
+# Scan button with TitanLabs-style design
+st.markdown("""
+<div style="text-align: center; margin: 2rem 0;">
+""", unsafe_allow_html=True)
+
+scan = st.button("🚀 Scan VN30 Stocks Now", key="scan_button")
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # Auto-run once on first load; subsequent presses refresh
 if 'has_scanned' not in st.session_state:
@@ -255,8 +406,8 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                                         vals.append((c * v) / 1_000_000_000)
                                 if vals:
                                     avg_trading_value = float(np.mean(vals))
-                        except Exception:
-                            pass
+                    except Exception:
+                        pass
             # Ensure est_val is defined before any checks
             est_val = np.nan
 
@@ -472,7 +623,12 @@ if scan:
     ts = datetime.now(timezone(timedelta(hours=7)))
     st.caption(f"Last scan: {ts.strftime('%Y-%m-%d %H:%M:%S')} GMT+7")
 
-    st.subheader("Raw metrics")
+    # Display results with TitanLabs-style cards
+    st.markdown("""
+    <div class="metric-card">
+        <h3>📈 Raw Metrics Overview</h3>
+    </div>
+    """, unsafe_allow_html=True)
     if not metrics.empty:
         # Format metrics with units for better readability
         display_metrics = metrics.copy()
@@ -532,7 +688,11 @@ if scan:
         st.dataframe(pd.DataFrame({"note":["No data fetched. Try again or adjust universe."]}))
 
     # Per-criterion tables
-    st.subheader("Per-criterion breakdown")
+    st.markdown("""
+    <div class="metric-card">
+        <h3>🎯 Per-Criterion Analysis</h3>
+    </div>
+    """, unsafe_allow_html=True)
     if side_by_side:
         c1, c2, c3, c4 = st.columns(4)
     else:
@@ -609,7 +769,11 @@ if scan:
             st.dataframe(t_add, column_config=add_column_config)
 
     # Final pass
-    st.subheader("Final pass list")
+    st.markdown("""
+    <div class="metric-card">
+        <h3>🏆 Final Pass List</h3>
+    </div>
+    """, unsafe_allow_html=True)
     passed = apply_criteria(metrics, criteria) if not metrics.empty else pd.DataFrame()
     
     if not passed.empty:
@@ -685,11 +849,19 @@ if scan:
         st.dataframe(passed)
 
     st.download_button(
-        label="Download CSV",
+        label="📥 Download CSV",
         data=passed.to_csv(index=False),
         file_name="vn_screener_pass.csv",
         mime="text/csv",
     )
+    
+    # Footer with TitanLabs-style design
+    st.markdown("""
+    <div class="footer">
+        <p>📊 Crownwell VNIndex Screener | Powered by Advanced Quantitative Analysis</p>
+        <p>Data sourced from Vietstock Finance, CafeF, and TCBS APIs</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.success(f"Completed. {len(passed)} symbols matched.")
 
