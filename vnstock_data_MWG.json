@@ -1,0 +1,872 @@
+{
+  "income_statement_year": {
+    "shape": [
+      16,
+      13
+    ],
+    "columns": [
+      "revenue",
+      "year_revenue_growth",
+      "cost_of_good_sold",
+      "gross_profit",
+      "operation_expense",
+      "operation_profit",
+      "year_operation_profit_growth",
+      "interest_expense",
+      "pre_tax_profit",
+      "post_tax_profit",
+      "share_holder_income",
+      "year_share_holder_income_growth",
+      "ebitda"
+    ],
+    "sample_data": {
+      "revenue": {
+        "2024": 134341,
+        "2023": 118280
+      },
+      "year_revenue_growth": {
+        "2024": 0.136,
+        "2023": -0.113
+      },
+      "cost_of_good_sold": {
+        "2024": -106842,
+        "2023": -95759
+      },
+      "gross_profit": {
+        "2024": 27499,
+        "2023": 22521
+      },
+      "operation_expense": {
+        "2024": -23416,
+        "2023": -22084
+      },
+      "operation_profit": {
+        "2024": 4084,
+        "2023": 436
+      },
+      "year_operation_profit_growth": {
+        "2024": 8.361,
+        "2023": -0.934
+      },
+      "interest_expense": {
+        "2024": -1137,
+        "2023": -1448
+      },
+      "pre_tax_profit": {
+        "2024": 4826,
+        "2023": 690
+      },
+      "post_tax_profit": {
+        "2024": 3733,
+        "2023": 168
+      },
+      "share_holder_income": {
+        "2024": 3722,
+        "2023": 168
+      },
+      "year_share_holder_income_growth": {
+        "2024": 21.198,
+        "2023": -0.959
+      },
+      "ebitda": {
+        "2024": 6997,
+        "2023": 3788
+      }
+    }
+  },
+  "income_statement_quarter": {
+    "shape": [
+      46,
+      18
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "revenue",
+      "year_revenue_growth",
+      "quarter_revenue_growth",
+      "cost_of_good_sold",
+      "gross_profit",
+      "operation_expense",
+      "operation_profit",
+      "year_operation_profit_growth",
+      "quarter_operation_profit_growth",
+      "interest_expense",
+      "pre_tax_profit",
+      "post_tax_profit",
+      "share_holder_income",
+      "year_share_holder_income_growth",
+      "quarter_share_holder_income_growth",
+      "ebitda"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": "2",
+        "2025-Q1": "1"
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "revenue": {
+        "2025-Q2": 37620,
+        "2025-Q1": 36135
+      },
+      "year_revenue_growth": {
+        "2025-Q2": 0.102,
+        "2025-Q1": 0.148
+      },
+      "quarter_revenue_growth": {
+        "2025-Q2": 0.041,
+        "2025-Q1": 0.045
+      },
+      "cost_of_good_sold": {
+        "2025-Q2": -30051,
+        "2025-Q1": -28935
+      },
+      "gross_profit": {
+        "2025-Q2": 7569,
+        "2025-Q1": 7200
+      },
+      "operation_expense": {
+        "2025-Q2": -5905,
+        "2025-Q1": -5618
+      },
+      "operation_profit": {
+        "2025-Q2": 1664,
+        "2025-Q1": 1583
+      },
+      "year_operation_profit_growth": {
+        "2025-Q2": 0.157,
+        "2025-Q1": 0.547
+      },
+      "quarter_operation_profit_growth": {
+        "2025-Q2": 0.051,
+        "2025-Q1": 1.891
+      },
+      "interest_expense": {
+        "2025-Q2": -375,
+        "2025-Q1": -323
+      },
+      "pre_tax_profit": {
+        "2025-Q2": 2028,
+        "2025-Q1": 1935
+      },
+      "post_tax_profit": {
+        "2025-Q2": 1658,
+        "2025-Q1": 1548
+      },
+      "share_holder_income": {
+        "2025-Q2": 1648,
+        "2025-Q1": 1546
+      },
+      "year_share_holder_income_growth": {
+        "2025-Q2": 0.406,
+        "2025-Q1": 0.713
+      },
+      "quarter_share_holder_income_growth": {
+        "2025-Q2": 0.066,
+        "2025-Q1": 0.825
+      },
+      "ebitda": {
+        "2025-Q2": 2153,
+        "2025-Q1": 2092
+      }
+    }
+  },
+  "balance_sheet_year": {
+    "shape": [
+      16,
+      17
+    ],
+    "columns": [
+      "short_asset",
+      "cash",
+      "short_invest",
+      "short_receivable",
+      "inventory",
+      "long_asset",
+      "fixed_asset",
+      "asset",
+      "debt",
+      "short_debt",
+      "long_debt",
+      "equity",
+      "capital",
+      "other_debt",
+      "un_distributed_income",
+      "minor_share_holder_profit",
+      "payable"
+    ],
+    "sample_data": {
+      "short_asset": {
+        "2024": 65836,
+        "2023": 51950
+      },
+      "cash": {
+        "2024": 4897,
+        "2023": 5366
+      },
+      "short_invest": {
+        "2024": 29324,
+        "2023": 18937
+      },
+      "short_receivable": {
+        "2024": 8826,
+        "2023": 5159
+      },
+      "inventory": {
+        "2024": 22245,
+        "2023": 21824
+      },
+      "long_asset": {
+        "2024": 4601,
+        "2023": 8161
+      },
+      "fixed_asset": {
+        "2024": 3587,
+        "2023": 6500
+      },
+      "asset": {
+        "2024": 70438,
+        "2023": 60111
+      },
+      "debt": {
+        "2024": 42316,
+        "2023": 36752
+      },
+      "short_debt": {
+        "2024": 27300,
+        "2023": 19129
+      },
+      "long_debt": {
+        "2024": 0,
+        "2023": 5985
+      },
+      "equity": {
+        "2024": 28122,
+        "2023": 23360
+      },
+      "capital": {
+        "2024": 14622,
+        "2023": 14634
+      },
+      "other_debt": {
+        "2024": 925,
+        "2023": 1317
+      },
+      "un_distributed_income": {
+        "2024": 0.0,
+        "2023": 0.0
+      },
+      "minor_share_holder_profit": {
+        "2024": 364,
+        "2023": 13
+      },
+      "payable": {
+        "2024": 42316,
+        "2023": 36752
+      }
+    }
+  },
+  "balance_sheet_quarter": {
+    "shape": [
+      46,
+      19
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "short_asset",
+      "cash",
+      "short_invest",
+      "short_receivable",
+      "inventory",
+      "long_asset",
+      "fixed_asset",
+      "asset",
+      "debt",
+      "short_debt",
+      "long_debt",
+      "equity",
+      "capital",
+      "other_debt",
+      "un_distributed_income",
+      "minor_share_holder_profit",
+      "payable"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": "2",
+        "2025-Q1": "1"
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "short_asset": {
+        "2025-Q2": 75934,
+        "2025-Q1": 68350
+      },
+      "cash": {
+        "2025-Q2": 6030,
+        "2025-Q1": 2658
+      },
+      "short_invest": {
+        "2025-Q2": 34303,
+        "2025-Q1": 32391
+      },
+      "short_receivable": {
+        "2025-Q2": 11374,
+        "2025-Q1": 9863
+      },
+      "inventory": {
+        "2025-Q2": 23692,
+        "2025-Q1": 22808
+      },
+      "long_asset": {
+        "2025-Q2": 5068,
+        "2025-Q1": 4329
+      },
+      "fixed_asset": {
+        "2025-Q2": 2978,
+        "2025-Q1": 3234
+      },
+      "asset": {
+        "2025-Q2": 81001,
+        "2025-Q1": 72679
+      },
+      "debt": {
+        "2025-Q2": 50985,
+        "2025-Q1": 43010
+      },
+      "short_debt": {
+        "2025-Q2": 31538,
+        "2025-Q1": 26222
+      },
+      "long_debt": {
+        "2025-Q2": 0,
+        "2025-Q1": 0
+      },
+      "equity": {
+        "2025-Q2": 30016,
+        "2025-Q1": 29669
+      },
+      "capital": {
+        "2025-Q2": 14797,
+        "2025-Q1": 14622
+      },
+      "other_debt": {
+        "2025-Q2": 2838,
+        "2025-Q1": 1035
+      },
+      "un_distributed_income": {
+        "2025-Q2": 0.0,
+        "2025-Q1": 0.0
+      },
+      "minor_share_holder_profit": {
+        "2025-Q2": 374,
+        "2025-Q1": 366
+      },
+      "payable": {
+        "2025-Q2": 50985,
+        "2025-Q1": 43010
+      }
+    }
+  },
+  "cash_flow_year": {
+    "shape": [
+      16,
+      5
+    ],
+    "columns": [
+      "invest_cost",
+      "from_invest",
+      "from_financial",
+      "from_sale",
+      "free_cash_flow"
+    ],
+    "sample_data": {
+      "invest_cost": {
+        "2024": -304,
+        "2023": -523
+      },
+      "from_invest": {
+        "2024": -11743,
+        "2023": -10831
+      },
+      "from_financial": {
+        "2024": 2757,
+        "2023": 7700
+      },
+      "from_sale": {
+        "2024": 8517,
+        "2023": 3436
+      },
+      "free_cash_flow": {
+        "2024": 3108.0,
+        "2023": 1161.0
+      }
+    }
+  },
+  "cash_flow_quarter": {
+    "shape": [
+      47,
+      7
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "invest_cost",
+      "from_invest",
+      "from_financial",
+      "from_sale",
+      "free_cash_flow"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": "2",
+        "2025-Q1": "1"
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "invest_cost": {
+        "2025-Q2": -256,
+        "2025-Q1": -163
+      },
+      "from_invest": {
+        "2025-Q2": -3558,
+        "2025-Q1": -3698
+      },
+      "from_financial": {
+        "2025-Q2": 5487,
+        "2025-Q1": -1031
+      },
+      "from_sale": {
+        "2025-Q2": 1443,
+        "2025-Q1": 2490
+      },
+      "free_cash_flow": {
+        "2025-Q2": 5212,
+        "2025-Q1": 3590
+      }
+    }
+  },
+  "ratio_year": {
+    "shape": [
+      14,
+      39
+    ],
+    "columns": [
+      "price_to_earning",
+      "price_to_book",
+      "value_before_ebitda",
+      "dividend",
+      "roe",
+      "roa",
+      "days_receivable",
+      "days_inventory",
+      "days_payable",
+      "ebit_on_interest",
+      "earning_per_share",
+      "book_value_per_share",
+      "equity_on_total_asset",
+      "equity_on_liability",
+      "current_payment",
+      "quick_payment",
+      "eps_change",
+      "ebitda_on_stock",
+      "gross_profit_margin",
+      "operating_profit_margin",
+      "post_tax_margin",
+      "debt_on_equity",
+      "debt_on_asset",
+      "debt_on_ebitda",
+      "short_on_long_debt",
+      "asset_on_equity",
+      "capital_balance",
+      "cash_on_equity",
+      "cash_on_capitalize",
+      "cash_circulation",
+      "revenue_on_work_capital",
+      "capex_on_fixed_asset",
+      "revenue_on_asset",
+      "post_tax_on_pre_tax",
+      "ebit_on_revenue",
+      "pre_tax_on_ebit",
+      "payable_on_equity",
+      "ebitda_on_stock_change",
+      "book_value_per_share_change"
+    ],
+    "sample_data": {
+      "price_to_earning": {
+        "2024": 23.9,
+        "2023": 369.1
+      },
+      "price_to_book": {
+        "2024": 3.2,
+        "2023": 2.7
+      },
+      "value_before_ebitda": {
+        "2024": 14.9,
+        "2023": 26.6
+      },
+      "dividend": {
+        "2024": 0.017,
+        "2023": 0.012
+      },
+      "roe": {
+        "2024": 0.146,
+        "2023": 0.007
+      },
+      "roa": {
+        "2024": 0.057,
+        "2023": 0.003
+      },
+      "days_receivable": {
+        "2024": 61,
+        "2023": 61
+      },
+      "days_inventory": {
+        "2024": 75,
+        "2023": 91
+      },
+      "days_payable": {
+        "2024": 29,
+        "2023": 33
+      },
+      "ebit_on_interest": {
+        "2024": 3.6,
+        "2023": 0.3
+      },
+      "earning_per_share": {
+        "2024": 2517,
+        "2023": 113
+      },
+      "book_value_per_share": {
+        "2024": 18774,
+        "2023": 15790
+      },
+      "equity_on_total_asset": {
+        "2024": 0.394,
+        "2023": 0.388
+      },
+      "equity_on_liability": {
+        "2024": 0.7,
+        "2023": 0.6
+      },
+      "current_payment": {
+        "2024": 1.6,
+        "2023": 1.7
+      },
+      "quick_payment": {
+        "2024": 1.0,
+        "2023": 1.0
+      },
+      "eps_change": {
+        "2024": 21.198,
+        "2023": -0.959
+      },
+      "ebitda_on_stock": {
+        "2024": 4783,
+        "2023": 2588
+      },
+      "gross_profit_margin": {
+        "2024": 0.205,
+        "2023": 0.19
+      },
+      "operating_profit_margin": {
+        "2024": 0.03,
+        "2023": 0.004
+      },
+      "post_tax_margin": {
+        "2024": 0.028,
+        "2023": 0.001
+      },
+      "debt_on_equity": {
+        "2024": 1.0,
+        "2023": 1.1
+      },
+      "debt_on_asset": {
+        "2024": 0.4,
+        "2023": 0.4
+      },
+      "debt_on_ebitda": {
+        "2024": 3.7,
+        "2023": 5.5
+      },
+      "short_on_long_debt": {
+        "2024": NaN,
+        "2023": 3.2
+      },
+      "asset_on_equity": {
+        "2024": 2.5,
+        "2023": 2.6
+      },
+      "capital_balance": {
+        "2024": 23520,
+        "2023": 21185
+      },
+      "cash_on_equity": {
+        "2024": 0.174,
+        "2023": 0.23
+      },
+      "cash_on_capitalize": {
+        "2024": 0.055,
+        "2023": 0.067
+      },
+      "cash_circulation": {
+        "2024": 107,
+        "2023": 119
+      },
+      "revenue_on_work_capital": {
+        "2024": 6.0,
+        "2023": 5.9
+      },
+      "capex_on_fixed_asset": {
+        "2024": -0.085,
+        "2023": -0.081
+      },
+      "revenue_on_asset": {
+        "2024": 1.9,
+        "2023": 2.0
+      },
+      "post_tax_on_pre_tax": {
+        "2024": 0.8,
+        "2023": 0.2
+      },
+      "ebit_on_revenue": {
+        "2024": 0.03,
+        "2023": 0.004
+      },
+      "pre_tax_on_ebit": {
+        "2024": 1.2,
+        "2023": 1.6
+      },
+      "payable_on_equity": {
+        "2024": 1.5,
+        "2023": 1.6
+      },
+      "ebitda_on_stock_change": {
+        "2024": 0.848,
+        "2023": -0.723
+      },
+      "book_value_per_share_change": {
+        "2024": 0.189,
+        "2023": -0.024
+      }
+    }
+  },
+  "ratio_quarter": {
+    "shape": [
+      41,
+      40
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "price_to_earning",
+      "price_to_book",
+      "value_before_ebitda",
+      "roe",
+      "roa",
+      "days_receivable",
+      "days_inventory",
+      "days_payable",
+      "ebit_on_interest",
+      "earning_per_share",
+      "book_value_per_share",
+      "equity_on_total_asset",
+      "equity_on_liability",
+      "current_payment",
+      "quick_payment",
+      "eps_change",
+      "ebitda_on_stock",
+      "gross_profit_margin",
+      "operating_profit_margin",
+      "post_tax_margin",
+      "debt_on_equity",
+      "debt_on_asset",
+      "debt_on_ebitda",
+      "short_on_long_debt",
+      "asset_on_equity",
+      "capital_balance",
+      "cash_on_equity",
+      "cash_on_capitalize",
+      "cash_circulation",
+      "revenue_on_work_capital",
+      "capex_on_fixed_asset",
+      "revenue_on_asset",
+      "post_tax_on_pre_tax",
+      "ebit_on_revenue",
+      "pre_tax_on_ebit",
+      "payable_on_equity",
+      "ebitda_on_stock_change",
+      "book_value_per_share_change"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": 2,
+        "2025-Q1": 1
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "price_to_earning": {
+        "2025-Q2": 23.5,
+        "2025-Q1": 19.7
+      },
+      "price_to_book": {
+        "2025-Q2": 3.8,
+        "2025-Q1": 2.9
+      },
+      "value_before_ebitda": {
+        "2025-Q2": 18.9,
+        "2025-Q1": 16.7
+      },
+      "roe": {
+        "2025-Q2": 0.174,
+        "2025-Q1": 0.16
+      },
+      "roa": {
+        "2025-Q2": 0.066,
+        "2025-Q1": 0.064
+      },
+      "days_receivable": {
+        "2025-Q2": 66,
+        "2025-Q1": 66
+      },
+      "days_inventory": {
+        "2025-Q2": 71,
+        "2025-Q1": 71
+      },
+      "days_payable": {
+        "2025-Q2": 33,
+        "2025-Q1": 33
+      },
+      "ebit_on_interest": {
+        "2025-Q2": 4.4,
+        "2025-Q1": 4.9
+      },
+      "earning_per_share": {
+        "2025-Q2": 3274,
+        "2025-Q1": 2952
+      },
+      "book_value_per_share": {
+        "2025-Q2": 20049,
+        "2025-Q1": 19820
+      },
+      "equity_on_total_asset": {
+        "2025-Q2": 0.366,
+        "2025-Q1": 0.403
+      },
+      "equity_on_liability": {
+        "2025-Q2": 0.6,
+        "2025-Q1": 0.7
+      },
+      "current_payment": {
+        "2025-Q2": 1.5,
+        "2025-Q1": 1.6
+      },
+      "quick_payment": {
+        "2025-Q2": 1.0,
+        "2025-Q1": 1.1
+      },
+      "eps_change": {
+        "2025-Q2": 0.109,
+        "2025-Q1": 0.173
+      },
+      "ebitda_on_stock": {
+        "2025-Q2": 5019,
+        "2025-Q1": 5022
+      },
+      "gross_profit_margin": {
+        "2025-Q2": 0.201,
+        "2025-Q1": 0.199
+      },
+      "operating_profit_margin": {
+        "2025-Q2": 0.044,
+        "2025-Q1": 0.044
+      },
+      "post_tax_margin": {
+        "2025-Q2": 0.044,
+        "2025-Q1": 0.043
+      },
+      "debt_on_equity": {
+        "2025-Q2": 1.1,
+        "2025-Q1": 0.9
+      },
+      "debt_on_asset": {
+        "2025-Q2": 0.4,
+        "2025-Q1": 0.4
+      },
+      "debt_on_ebitda": {
+        "2025-Q2": 3.7,
+        "2025-Q1": 3.4
+      },
+      "short_on_long_debt": {
+        "2025-Q2": NaN,
+        "2025-Q1": NaN
+      },
+      "asset_on_equity": {
+        "2025-Q2": 2.7,
+        "2025-Q1": 2.5
+      },
+      "capital_balance": {
+        "2025-Q2": 24948,
+        "2025-Q1": 25340
+      },
+      "cash_on_equity": {
+        "2025-Q2": 0.201,
+        "2025-Q1": 0.09
+      },
+      "cash_on_capitalize": {
+        "2025-Q2": 0.053,
+        "2025-Q1": 0.027
+      },
+      "cash_circulation": {
+        "2025-Q2": 105,
+        "2025-Q1": 104
+      },
+      "revenue_on_work_capital": {
+        "2025-Q2": 5.5,
+        "2025-Q1": 5.5
+      },
+      "capex_on_fixed_asset": {
+        "2025-Q2": -0.17,
+        "2025-Q1": -0.098
+      },
+      "revenue_on_asset": {
+        "2025-Q2": 1.9,
+        "2025-Q1": 2.0
+      },
+      "post_tax_on_pre_tax": {
+        "2025-Q2": 0.8,
+        "2025-Q1": 0.8
+      },
+      "ebit_on_revenue": {
+        "2025-Q2": 0.044,
+        "2025-Q1": 0.044
+      },
+      "pre_tax_on_ebit": {
+        "2025-Q2": 1.2,
+        "2025-Q1": 1.2
+      },
+      "payable_on_equity": {
+        "2025-Q2": 1.7,
+        "2025-Q1": 1.4
+      },
+      "ebitda_on_stock_change": {
+        "2025-Q2": -0.001,
+        "2025-Q1": 0.05
+      },
+      "book_value_per_share_change": {
+        "2025-Q2": 0.012,
+        "2025-Q1": 0.056
+      }
+    }
+  }
+}

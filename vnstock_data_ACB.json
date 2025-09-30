@@ -1,0 +1,892 @@
+{
+  "income_statement_year": {
+    "shape": [
+      23,
+      14
+    ],
+    "columns": [
+      "revenue",
+      "year_revenue_growth",
+      "operation_expense",
+      "operation_profit",
+      "year_operation_profit_growth",
+      "pre_tax_profit",
+      "post_tax_profit",
+      "share_holder_income",
+      "year_share_holder_income_growth",
+      "invest_profit",
+      "service_profit",
+      "other_profit",
+      "provision_expense",
+      "operation_income"
+    ],
+    "sample_data": {
+      "revenue": {
+        "2024": 27795,
+        "2023": 24960
+      },
+      "year_revenue_growth": {
+        "2024": 0.114,
+        "2023": 0.061
+      },
+      "operation_expense": {
+        "2024": -10903,
+        "2023": -10874
+      },
+      "operation_profit": {
+        "2024": 33515,
+        "2023": 32747
+      },
+      "year_operation_profit_growth": {
+        "2024": 0.023,
+        "2023": 0.137
+      },
+      "pre_tax_profit": {
+        "2024": 21006,
+        "2023": 20068
+      },
+      "post_tax_profit": {
+        "2024": 16790,
+        "2023": 16045
+      },
+      "share_holder_income": {
+        "2024": 16790,
+        "2023": 16045
+      },
+      "year_share_holder_income_growth": {
+        "2024": 0.046,
+        "2023": 0.172
+      },
+      "invest_profit": {
+        "2024": 1858,
+        "2023": 4001
+      },
+      "service_profit": {
+        "2024": 3239,
+        "2023": 2922
+      },
+      "other_profit": {
+        "2024": 624,
+        "2023": 863
+      },
+      "provision_expense": {
+        "2024": -1606,
+        "2023": -1804
+      },
+      "operation_income": {
+        "2024": 22612,
+        "2023": 21872
+      }
+    }
+  },
+  "income_statement_quarter": {
+    "shape": [
+      75,
+      19
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "revenue",
+      "year_revenue_growth",
+      "quarter_revenue_growth",
+      "operation_expense",
+      "operation_profit",
+      "year_operation_profit_growth",
+      "quarter_operation_profit_growth",
+      "pre_tax_profit",
+      "post_tax_profit",
+      "share_holder_income",
+      "year_share_holder_income_growth",
+      "quarter_share_holder_income_growth",
+      "invest_profit",
+      "service_profit",
+      "other_profit",
+      "provision_expense",
+      "operation_income"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": "2",
+        "2025-Q1": "1"
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "revenue": {
+        "2025-Q2": 6684,
+        "2025-Q1": 6359
+      },
+      "year_revenue_growth": {
+        "2025-Q2": -0.06,
+        "2025-Q1": -0.054
+      },
+      "quarter_revenue_growth": {
+        "2025-Q2": 0.051,
+        "2025-Q1": -0.102
+      },
+      "operation_expense": {
+        "2025-Q2": -2736,
+        "2025-Q1": -2692
+      },
+      "operation_profit": {
+        "2025-Q2": 9293,
+        "2025-Q1": 7915
+      },
+      "year_operation_profit_growth": {
+        "2025-Q2": 0.074,
+        "2025-Q1": -0.031
+      },
+      "quarter_operation_profit_growth": {
+        "2025-Q2": 0.174,
+        "2025-Q1": -0.075
+      },
+      "pre_tax_profit": {
+        "2025-Q2": 6093,
+        "2025-Q1": 4597
+      },
+      "post_tax_profit": {
+        "2025-Q2": 4881,
+        "2025-Q1": 3678
+      },
+      "share_holder_income": {
+        "2025-Q2": 4881,
+        "2025-Q1": 3678
+      },
+      "year_share_holder_income_growth": {
+        "2025-Q2": 0.092,
+        "2025-Q1": -0.058
+      },
+      "quarter_share_holder_income_growth": {
+        "2025-Q2": 0.327,
+        "2025-Q1": -0.191
+      },
+      "invest_profit": {
+        "2025-Q2": 1211,
+        "2025-Q1": 501
+      },
+      "service_profit": {
+        "2025-Q2": 585,
+        "2025-Q1": 872
+      },
+      "other_profit": {
+        "2025-Q2": 813,
+        "2025-Q1": 182
+      },
+      "provision_expense": {
+        "2025-Q2": -463,
+        "2025-Q1": -626
+      },
+      "operation_income": {
+        "2025-Q2": 6556,
+        "2025-Q1": 5223
+      }
+    }
+  },
+  "balance_sheet_year": {
+    "shape": [
+      23,
+      27
+    ],
+    "columns": [
+      "cash",
+      "fixed_asset",
+      "asset",
+      "debt",
+      "equity",
+      "capital",
+      "central_bank_deposit",
+      "other_bank_deposit",
+      "other_bank_loan",
+      "stock_invest",
+      "customer_loan",
+      "bad_loan",
+      "provision",
+      "net_customer_loan",
+      "other_asset",
+      "other_bank_credit",
+      "owe_other_bank",
+      "owe_central_bank",
+      "valuable_paper",
+      "payable_interest",
+      "receivable_interest",
+      "deposit",
+      "other_debt",
+      "fund",
+      "un_distributed_income",
+      "minor_share_holder_profit",
+      "payable"
+    ],
+    "sample_data": {
+      "cash": {
+        "2024": 5696,
+        "2023": 6909
+      },
+      "fixed_asset": {
+        "2024": 5412,
+        "2023": 4763
+      },
+      "asset": {
+        "2024": 864006,
+        "2023": 718795
+      },
+      "debt": {
+        "2024": 780544,
+        "2023": 647839
+      },
+      "equity": {
+        "2024": 83462,
+        "2023": 70956
+      },
+      "capital": {
+        "2024": 44667,
+        "2023": 38841
+      },
+      "central_bank_deposit": {
+        "2024": 25220,
+        "2023": 18505
+      },
+      "other_bank_deposit": {
+        "2024": 117781,
+        "2023": 114644
+      },
+      "other_bank_loan": {
+        "2024": 151.0,
+        "2023": 280.0
+      },
+      "stock_invest": {
+        "2024": 125096,
+        "2023": 80780
+      },
+      "customer_loan": {
+        "2024": 580686,
+        "2023": 487602
+      },
+      "bad_loan": {
+        "2024": 8650,
+        "2023": 5887
+      },
+      "provision": {
+        "2024": -6740,
+        "2023": -5367
+      },
+      "net_customer_loan": {
+        "2024": 573947,
+        "2023": 482235
+      },
+      "other_asset": {
+        "2024": 10519,
+        "2023": 10552
+      },
+      "other_bank_credit": {
+        "2024": 91574,
+        "2023": 80719
+      },
+      "owe_other_bank": {
+        "2024": 20018.0,
+        "2023": 8787.0
+      },
+      "owe_central_bank": {
+        "2024": 7955,
+        "2023": 0
+      },
+      "valuable_paper": {
+        "2024": 101650,
+        "2023": 52410
+      },
+      "payable_interest": {
+        "2024": 7045.0,
+        "2023": 7682.0
+      },
+      "receivable_interest": {
+        "2024": 4954.0,
+        "2023": 4283.0
+      },
+      "deposit": {
+        "2024": 537305,
+        "2023": 482703
+      },
+      "other_debt": {
+        "2024": 22014,
+        "2023": 23060
+      },
+      "fund": {
+        "2024": 14790,
+        "2023": 11557
+      },
+      "un_distributed_income": {
+        "2024": 23734,
+        "2023": 20286
+      },
+      "minor_share_holder_profit": {
+        "2024": 0.0,
+        "2023": 0.0
+      },
+      "payable": {
+        "2024": 780544,
+        "2023": 647839
+      }
+    }
+  },
+  "balance_sheet_quarter": {
+    "shape": [
+      76,
+      29
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "cash",
+      "fixed_asset",
+      "asset",
+      "debt",
+      "equity",
+      "capital",
+      "central_bank_deposit",
+      "other_bank_deposit",
+      "other_bank_loan",
+      "stock_invest",
+      "customer_loan",
+      "bad_loan",
+      "provision",
+      "net_customer_loan",
+      "other_asset",
+      "other_bank_credit",
+      "owe_other_bank",
+      "owe_central_bank",
+      "valuable_paper",
+      "payable_interest",
+      "receivable_interest",
+      "deposit",
+      "other_debt",
+      "fund",
+      "un_distributed_income",
+      "minor_share_holder_profit",
+      "payable"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": "2",
+        "2025-Q1": "1"
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "cash": {
+        "2025-Q2": 6666,
+        "2025-Q1": 5858
+      },
+      "fixed_asset": {
+        "2025-Q2": 5397,
+        "2025-Q1": 5312
+      },
+      "asset": {
+        "2025-Q2": 933541,
+        "2025-Q1": 891675
+      },
+      "debt": {
+        "2025-Q2": 846331,
+        "2025-Q1": 804600
+      },
+      "equity": {
+        "2025-Q2": 87211,
+        "2025-Q1": 87075
+      },
+      "capital": {
+        "2025-Q2": 51367,
+        "2025-Q1": 44667
+      },
+      "central_bank_deposit": {
+        "2025-Q2": 5440,
+        "2025-Q1": 13458
+      },
+      "other_bank_deposit": {
+        "2025-Q2": 125447,
+        "2025-Q1": 129347
+      },
+      "other_bank_loan": {
+        "2025-Q2": 0.0,
+        "2025-Q1": 0.0
+      },
+      "stock_invest": {
+        "2025-Q2": 150862,
+        "2025-Q1": 134413
+      },
+      "customer_loan": {
+        "2025-Q2": 633749,
+        "2025-Q1": 598806
+      },
+      "bad_loan": {
+        "2025-Q2": 7964.0,
+        "2025-Q1": 8844.0
+      },
+      "provision": {
+        "2025-Q2": -6079,
+        "2025-Q1": -6375
+      },
+      "net_customer_loan": {
+        "2025-Q2": 627669,
+        "2025-Q1": 592431
+      },
+      "other_asset": {
+        "2025-Q2": 11998,
+        "2025-Q1": 10680
+      },
+      "other_bank_credit": {
+        "2025-Q2": 66175,
+        "2025-Q1": 71629
+      },
+      "owe_other_bank": {
+        "2025-Q2": 30084.0,
+        "2025-Q1": 29655.0
+      },
+      "owe_central_bank": {
+        "2025-Q2": 21027,
+        "2025-Q1": 18643
+      },
+      "valuable_paper": {
+        "2025-Q2": 139553,
+        "2025-Q1": 114052
+      },
+      "payable_interest": {
+        "2025-Q2": 8620.0,
+        "2025-Q1": 7904.0
+      },
+      "receivable_interest": {
+        "2025-Q2": 5945.0,
+        "2025-Q1": 5756.0
+      },
+      "deposit": {
+        "2025-Q2": 567407,
+        "2025-Q1": 550375
+      },
+      "other_debt": {
+        "2025-Q2": 21742,
+        "2025-Q1": 20048
+      },
+      "fund": {
+        "2025-Q2": 14790,
+        "2025-Q1": 14790
+      },
+      "un_distributed_income": {
+        "2025-Q2": 21027,
+        "2025-Q1": 27412
+      },
+      "minor_share_holder_profit": {
+        "2025-Q2": 0.0,
+        "2025-Q1": 0.0
+      },
+      "payable": {
+        "2025-Q2": 846331,
+        "2025-Q1": 804600
+      }
+    }
+  },
+  "cash_flow_year": {
+    "shape": [
+      23,
+      5
+    ],
+    "columns": [
+      "invest_cost",
+      "from_invest",
+      "from_financial",
+      "from_sale",
+      "free_cash_flow"
+    ],
+    "sample_data": {
+      "invest_cost": {
+        "2024": -920,
+        "2023": -1276
+      },
+      "from_invest": {
+        "2024": -733,
+        "2023": -1197
+      },
+      "from_financial": {
+        "2024": -3884,
+        "2023": -3377
+      },
+      "from_sale": {
+        "2024": 8370,
+        "2023": 37136
+      },
+      "free_cash_flow": {
+        "2024": 0.0,
+        "2023": 0.0
+      }
+    }
+  },
+  "cash_flow_quarter": {
+    "shape": [
+      68,
+      7
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "invest_cost",
+      "from_invest",
+      "from_financial",
+      "from_sale",
+      "free_cash_flow"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": "2",
+        "2025-Q1": "1"
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "invest_cost": {
+        "2025-Q2": -101,
+        "2025-Q1": -181
+      },
+      "from_invest": {
+        "2025-Q2": -47,
+        "2025-Q1": -177
+      },
+      "from_financial": {
+        "2025-Q2": -4467,
+        "2025-Q1": 0
+      },
+      "from_sale": {
+        "2025-Q2": -5491,
+        "2025-Q1": -4310
+      },
+      "free_cash_flow": {
+        "2025-Q2": 0.0,
+        "2025-Q1": 0.0
+      }
+    }
+  },
+  "ratio_year": {
+    "shape": [
+      21,
+      30
+    ],
+    "columns": [
+      "price_to_earning",
+      "price_to_book",
+      "dividend",
+      "roe",
+      "roa",
+      "earning_per_share",
+      "book_value_per_share",
+      "interest_margin",
+      "non_interest_on_toi",
+      "bad_debt_percentage",
+      "provision_on_bad_debt",
+      "cost_of_financing",
+      "equity_on_total_asset",
+      "equity_on_loan",
+      "cost_to_income",
+      "equity_on_liability",
+      "eps_change",
+      "asset_on_equity",
+      "pre_provision_on_toi",
+      "post_tax_on_toi",
+      "loan_on_earn_asset",
+      "loan_on_asset",
+      "loan_on_deposit",
+      "deposit_on_earn_asset",
+      "bad_debt_on_asset",
+      "liquidity_on_liability",
+      "payable_on_equity",
+      "cancel_debt",
+      "book_value_per_share_change",
+      "credit_growth"
+    ],
+    "sample_data": {
+      "price_to_earning": {
+        "2024": 6.6,
+        "2023": 5.4
+      },
+      "price_to_book": {
+        "2024": 1.3,
+        "2023": 1.2
+      },
+      "dividend": {
+        "2024": 0.046,
+        "2023": 0.06
+      },
+      "roe": {
+        "2024": 0.217,
+        "2023": 0.248
+      },
+      "roa": {
+        "2024": 0.021,
+        "2023": 0.024
+      },
+      "earning_per_share": {
+        "2024": 3268,
+        "2023": 3123
+      },
+      "book_value_per_share": {
+        "2024": 16248,
+        "2023": 13813
+      },
+      "interest_margin": {
+        "2024": 0.036,
+        "2023": 0.039
+      },
+      "non_interest_on_toi": {
+        "2024": 0.171,
+        "2023": 0.238
+      },
+      "bad_debt_percentage": {
+        "2024": 0.015,
+        "2023": 0.012
+      },
+      "provision_on_bad_debt": {
+        "2024": 0.779,
+        "2023": 0.912
+      },
+      "cost_of_financing": {
+        "2024": 0.033,
+        "2023": 0.048
+      },
+      "equity_on_total_asset": {
+        "2024": 0.097,
+        "2023": 0.099
+      },
+      "equity_on_loan": {
+        "2024": 0.144,
+        "2023": 0.146
+      },
+      "cost_to_income": {
+        "2024": 0.325,
+        "2023": 0.332
+      },
+      "equity_on_liability": {
+        "2024": 0.1,
+        "2023": 0.1
+      },
+      "eps_change": {
+        "2024": 0.046,
+        "2023": 0.172
+      },
+      "asset_on_equity": {
+        "2024": 10.4,
+        "2023": 10.1
+      },
+      "pre_provision_on_toi": {
+        "2024": 0.539,
+        "2023": 0.534
+      },
+      "post_tax_on_toi": {
+        "2024": 0.501,
+        "2023": 0.49
+      },
+      "loan_on_earn_asset": {
+        "2024": 0.69,
+        "2023": 0.7
+      },
+      "loan_on_asset": {
+        "2024": 0.672,
+        "2023": 0.678
+      },
+      "loan_on_deposit": {
+        "2024": 1.081,
+        "2023": 1.01
+      },
+      "deposit_on_earn_asset": {
+        "2024": 0.638,
+        "2023": 0.693
+      },
+      "bad_debt_on_asset": {
+        "2024": 0.01,
+        "2023": 0.008
+      },
+      "liquidity_on_liability": {
+        "2024": 0.351,
+        "2023": 0.341
+      },
+      "payable_on_equity": {
+        "2024": 9.4,
+        "2023": 9.1
+      },
+      "cancel_debt": {
+        "2024": 0.0,
+        "2023": 0.003
+      },
+      "book_value_per_share_change": {
+        "2024": 0.176,
+        "2023": 0.214
+      },
+      "credit_growth": {
+        "2024": 0.191,
+        "2023": 0.179
+      }
+    }
+  },
+  "ratio_quarter": {
+    "shape": [
+      71,
+      31
+    ],
+    "columns": [
+      "quarter",
+      "year",
+      "price_to_earning",
+      "price_to_book",
+      "roe",
+      "roa",
+      "earning_per_share",
+      "book_value_per_share",
+      "interest_margin",
+      "non_interest_on_toi",
+      "bad_debt_percentage",
+      "provision_on_bad_debt",
+      "cost_of_financing",
+      "equity_on_total_asset",
+      "equity_on_loan",
+      "cost_to_income",
+      "equity_on_liability",
+      "eps_change",
+      "asset_on_equity",
+      "pre_provision_on_toi",
+      "post_tax_on_toi",
+      "loan_on_earn_asset",
+      "loan_on_asset",
+      "loan_on_deposit",
+      "deposit_on_earn_asset",
+      "bad_debt_on_asset",
+      "liquidity_on_liability",
+      "payable_on_equity",
+      "cancel_debt",
+      "book_value_per_share_change",
+      "credit_growth"
+    ],
+    "sample_data": {
+      "quarter": {
+        "2025-Q2": 2,
+        "2025-Q1": 1
+      },
+      "year": {
+        "2025-Q2": "2025",
+        "2025-Q1": "2025"
+      },
+      "price_to_earning": {
+        "2025-Q2": 7.7,
+        "2025-Q1": 6.7
+      },
+      "price_to_book": {
+        "2025-Q2": 1.5,
+        "2025-Q1": 1.3
+      },
+      "roe": {
+        "2025-Q2": 0.21,
+        "2025-Q1": 0.205
+      },
+      "roa": {
+        "2025-Q2": 0.02,
+        "2025-Q1": 0.02
+      },
+      "earning_per_share": {
+        "2025-Q2": 3304,
+        "2025-Q1": 3224
+      },
+      "book_value_per_share": {
+        "2025-Q2": 16978,
+        "2025-Q1": 16951
+      },
+      "interest_margin": {
+        "2025-Q2": 0.032,
+        "2025-Q1": 0.035
+      },
+      "non_interest_on_toi": {
+        "2025-Q2": 0.281,
+        "2025-Q1": 0.197
+      },
+      "bad_debt_percentage": {
+        "2025-Q2": 0.013,
+        "2025-Q1": 0.015
+      },
+      "provision_on_bad_debt": {
+        "2025-Q2": 0.763,
+        "2025-Q1": 0.721
+      },
+      "cost_of_financing": {
+        "2025-Q2": 0.036,
+        "2025-Q1": 0.035
+      },
+      "equity_on_total_asset": {
+        "2025-Q2": 0.093,
+        "2025-Q1": 0.098
+      },
+      "equity_on_loan": {
+        "2025-Q2": 0.138,
+        "2025-Q1": 0.145
+      },
+      "cost_to_income": {
+        "2025-Q2": 0.294,
+        "2025-Q1": 0.34
+      },
+      "equity_on_liability": {
+        "2025-Q2": 0.1,
+        "2025-Q1": 0.1
+      },
+      "eps_change": {
+        "2025-Q2": 0.025,
+        "2025-Q1": -0.014
+      },
+      "asset_on_equity": {
+        "2025-Q2": 10.7,
+        "2025-Q1": 10.2
+      },
+      "pre_provision_on_toi": {
+        "2025-Q2": 0.565,
+        "2025-Q1": 0.528
+      },
+      "post_tax_on_toi": {
+        "2025-Q2": 0.525,
+        "2025-Q1": 0.465
+      },
+      "loan_on_earn_asset": {
+        "2025-Q2": 0.697,
+        "2025-Q1": 0.689
+      },
+      "loan_on_asset": {
+        "2025-Q2": 0.679,
+        "2025-Q1": 0.672
+      },
+      "loan_on_deposit": {
+        "2025-Q2": 1.117,
+        "2025-Q1": 1.088
+      },
+      "deposit_on_earn_asset": {
+        "2025-Q2": 0.624,
+        "2025-Q1": 0.633
+      },
+      "bad_debt_on_asset": {
+        "2025-Q2": 0.009,
+        "2025-Q1": 0.01
+      },
+      "liquidity_on_liability": {
+        "2025-Q2": 0.341,
+        "2025-Q1": 0.352
+      },
+      "payable_on_equity": {
+        "2025-Q2": 9.7,
+        "2025-Q1": 9.2
+      },
+      "cancel_debt": {
+        "2025-Q2": 0.003,
+        "2025-Q1": 0.002
+      },
+      "book_value_per_share_change": {
+        "2025-Q2": 0.002,
+        "2025-Q1": 0.043
+      },
+      "credit_growth": {
+        "2025-Q2": 0.152,
+        "2025-Q1": 0.183
+      }
+    }
+  }
+}

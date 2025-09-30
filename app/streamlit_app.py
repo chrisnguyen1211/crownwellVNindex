@@ -10,8 +10,10 @@ from helpers import (
     fetch_income_statement,
     fetch_ratios,
     fetch_balance_sheet,
+    fetch_cash_flow,
     compute_cagr,
     compute_roe_roa_from_statements,
+    extract_additional_metrics,
 )
 from web_scraper import VietnamStockDataScraper
 
@@ -213,6 +215,30 @@ criteria["min_avg_trading_value_billion"] = st.sidebar.number_input(
     "Min Avg Trading Value (billion VND/day)", min_value=0.0, max_value=1000.0, value=1.0, step=1.0
 )
 
+# Additional metrics criteria
+st.sidebar.markdown("### 📊 Additional Metrics")
+criteria["max_ev_ebitda"] = st.sidebar.number_input(
+    "Max EV/EBITDA", min_value=0.0, value=15.0, step=0.5
+)
+criteria["min_gross_margin"] = st.sidebar.number_input(
+    "Min Gross Margin (%)", min_value=0.0, max_value=100.0, value=20.0, step=1.0
+) / 100.0
+criteria["min_operating_margin"] = st.sidebar.number_input(
+    "Min Operating Margin (%)", min_value=0.0, max_value=100.0, value=10.0, step=1.0
+) / 100.0
+criteria["max_debt_to_equity"] = st.sidebar.number_input(
+    "Max Debt-to-Equity", min_value=0.0, value=1.0, step=0.1
+)
+criteria["min_current_ratio"] = st.sidebar.number_input(
+    "Min Current Ratio", min_value=0.0, value=1.0, step=0.1
+)
+criteria["min_quick_ratio"] = st.sidebar.number_input(
+    "Min Quick Ratio", min_value=0.0, value=0.5, step=0.1
+)
+criteria["min_dividend_yield"] = st.sidebar.number_input(
+    "Min Dividend Yield (%)", min_value=0.0, max_value=100.0, value=2.0, step=0.1
+) / 100.0
+
 side_by_side = st.sidebar.checkbox(
     "Show per-criterion tables side-by-side", value=True
 )
@@ -250,6 +276,7 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
         try:
             inc = fetch_income_statement(sym)
             rat = fetch_ratios(sym)
+            cf = fetch_cash_flow(sym)
             if inc.empty and rat.empty:
                 continue
 
@@ -284,6 +311,37 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     roe_val = roe_c
                 if pd.isna(roa_val):
                     roa_val = roa_c
+
+            # Extract additional metrics from vnstock API
+            additional_metrics = extract_additional_metrics(rat, cf)
+            
+            # EV/EBITDA
+            ev_ebitda = additional_metrics.get("ev_ebitda", np.nan)
+            
+            # Gross Margin
+            gross_margin = additional_metrics.get("gross_margin", np.nan)
+            
+            # Operating Margin
+            operating_margin = additional_metrics.get("operating_margin", np.nan)
+            
+            # Debt Ratios
+            debt_to_equity = additional_metrics.get("debt_to_equity", np.nan)
+            debt_to_asset = additional_metrics.get("debt_to_asset", np.nan)
+            
+            # Liquidity Ratios
+            current_ratio = additional_metrics.get("current_ratio", np.nan)
+            quick_ratio = additional_metrics.get("quick_ratio", np.nan)
+            
+            # EPS and Book Value
+            eps = additional_metrics.get("eps", np.nan)
+            book_value_per_share = additional_metrics.get("book_value_per_share", np.nan)
+            
+            # Dividend Yield
+            dividend_yield = additional_metrics.get("dividend_yield", np.nan)
+            
+            # Free Cash Flow
+            free_cash_flow = additional_metrics.get("free_cash_flow", np.nan)
+            operating_cash_flow = additional_metrics.get("operating_cash_flow", np.nan)
 
             # Normalize ROE/ROA to fraction if in percents
             if pd.notna(roe_val) and roe_val > 1:
@@ -536,6 +594,16 @@ def calculate_metrics(symbols: List[str]) -> pd.DataFrame:
                     peg=peg,
                     ev_ebitda=ev_ebitda,
                     gross_margin=gross_margin,
+                    operating_margin=operating_margin,
+                    debt_to_equity=debt_to_equity,
+                    debt_to_asset=debt_to_asset,
+                    current_ratio=current_ratio,
+                    quick_ratio=quick_ratio,
+                    eps=eps,
+                    book_value_per_share=book_value_per_share,
+                    dividend_yield=dividend_yield,
+                    free_cash_flow=free_cash_flow,
+                    operating_cash_flow=operating_cash_flow,
                     free_float=free_float,
                     foreign_ownership=foreign_ownership,
                     management_ownership=management_ownership,
@@ -584,6 +652,28 @@ def apply_criteria(df: pd.DataFrame, crit: Dict[str, float]) -> pd.DataFrame:
         cond &= (df["management_ownership"].fillna(101) <= crit["max_management_ownership"] / 100.0)
     if crit["min_avg_trading_value_billion"] > 0:
         cond &= (df["avg_trading_value"].fillna(-1) >= crit["min_avg_trading_value_billion"])
+    
+    # Additional metrics criteria
+    if crit["max_ev_ebitda"] > 0:
+        cond &= (df["ev_ebitda"].fillna(999) <= crit["max_ev_ebitda"])
+    
+    if crit["min_gross_margin"] > 0:
+        cond &= (df["gross_margin"].fillna(-1) >= crit["min_gross_margin"])
+    
+    if crit["min_operating_margin"] > 0:
+        cond &= (df["operating_margin"].fillna(-1) >= crit["min_operating_margin"])
+    
+    if crit["max_debt_to_equity"] > 0:
+        cond &= (df["debt_to_equity"].fillna(999) <= crit["max_debt_to_equity"])
+    
+    if crit["min_current_ratio"] > 0:
+        cond &= (df["current_ratio"].fillna(-1) >= crit["min_current_ratio"])
+    
+    if crit["min_quick_ratio"] > 0:
+        cond &= (df["quick_ratio"].fillna(-1) >= crit["min_quick_ratio"])
+    
+    if crit["min_dividend_yield"] > 0:
+        cond &= (df["dividend_yield"].fillna(-1) >= crit["min_dividend_yield"])
     
     return df[cond].sort_values(by=["profit_cagr_3y","roe"], ascending=False)
 
@@ -658,6 +748,36 @@ if scan:
         
         if 'gross_margin' in display_metrics.columns:
             display_metrics['gross_margin'] = display_metrics['gross_margin'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
+        
+        if 'operating_margin' in display_metrics.columns:
+            display_metrics['operating_margin'] = display_metrics['operating_margin'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
+        
+        if 'debt_to_equity' in display_metrics.columns:
+            display_metrics['debt_to_equity'] = display_metrics['debt_to_equity'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
+        
+        if 'debt_to_asset' in display_metrics.columns:
+            display_metrics['debt_to_asset'] = display_metrics['debt_to_asset'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
+        
+        if 'current_ratio' in display_metrics.columns:
+            display_metrics['current_ratio'] = display_metrics['current_ratio'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
+        
+        if 'quick_ratio' in display_metrics.columns:
+            display_metrics['quick_ratio'] = display_metrics['quick_ratio'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
+        
+        if 'eps' in display_metrics.columns:
+            display_metrics['eps'] = display_metrics['eps'].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "N/A")
+        
+        if 'book_value_per_share' in display_metrics.columns:
+            display_metrics['book_value_per_share'] = display_metrics['book_value_per_share'].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "N/A")
+        
+        if 'dividend_yield' in display_metrics.columns:
+            display_metrics['dividend_yield'] = display_metrics['dividend_yield'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A")
+        
+        if 'free_cash_flow' in display_metrics.columns:
+            display_metrics['free_cash_flow'] = display_metrics['free_cash_flow'].apply(lambda x: f"{x:.1f}B" if pd.notna(x) else "N/A")
+        
+        if 'operating_cash_flow' in display_metrics.columns:
+            display_metrics['operating_cash_flow'] = display_metrics['operating_cash_flow'].apply(lambda x: f"{x:.1f}B" if pd.notna(x) else "N/A")
         
         # Format valuation columns
         if 'est_val' in display_metrics.columns:

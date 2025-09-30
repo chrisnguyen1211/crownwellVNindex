@@ -33,6 +33,74 @@ def fetch_ratios(symbol: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def fetch_cash_flow(symbol: str) -> pd.DataFrame:
+    try:
+        df = Finance(symbol=symbol, source='TCBS').cash_flow(period="year")
+        df = df.reset_index().rename(columns={"period": "year"})
+        df["symbol"] = symbol
+        return df
+    except Exception:
+        return pd.DataFrame()
+
+
+def extract_additional_metrics(ratios_df: pd.DataFrame, cash_flow_df: pd.DataFrame) -> dict:
+    """Extract additional metrics from vnstock API data"""
+    metrics = {}
+    
+    if not ratios_df.empty:
+        latest = ratios_df.sort_values(["year"]).tail(1)
+        
+        # EV/EBITDA
+        if "value_before_ebitda" in latest.columns and len(latest):
+            metrics["ev_ebitda"] = latest["value_before_ebitda"].iloc[0]
+        
+        # Gross Margin
+        if "gross_profit_margin" in latest.columns and len(latest):
+            metrics["gross_margin"] = latest["gross_profit_margin"].iloc[0]
+        
+        # Operating Margin
+        if "operating_profit_margin" in latest.columns and len(latest):
+            metrics["operating_margin"] = latest["operating_profit_margin"].iloc[0]
+        
+        # Debt Ratios
+        if "debt_on_equity" in latest.columns and len(latest):
+            metrics["debt_to_equity"] = latest["debt_on_equity"].iloc[0]
+        
+        if "debt_on_asset" in latest.columns and len(latest):
+            metrics["debt_to_asset"] = latest["debt_on_asset"].iloc[0]
+        
+        # Liquidity Ratios
+        if "current_payment" in latest.columns and len(latest):
+            metrics["current_ratio"] = latest["current_payment"].iloc[0]
+        
+        if "quick_payment" in latest.columns and len(latest):
+            metrics["quick_ratio"] = latest["quick_payment"].iloc[0]
+        
+        # EPS and Book Value
+        if "earning_per_share" in latest.columns and len(latest):
+            metrics["eps"] = latest["earning_per_share"].iloc[0]
+        
+        if "book_value_per_share" in latest.columns and len(latest):
+            metrics["book_value_per_share"] = latest["book_value_per_share"].iloc[0]
+        
+        # Dividend yield
+        if "dividend" in latest.columns and len(latest):
+            metrics["dividend_yield"] = latest["dividend"].iloc[0]
+    
+    if not cash_flow_df.empty:
+        latest_cf = cash_flow_df.sort_values(["year"]).tail(1)
+        
+        # Free Cash Flow
+        if "free_cash_flow" in latest_cf.columns and len(latest_cf):
+            metrics["free_cash_flow"] = latest_cf["free_cash_flow"].iloc[0]
+        
+        # Operating Cash Flow
+        if "from_sale" in latest_cf.columns and len(latest_cf):
+            metrics["operating_cash_flow"] = latest_cf["from_sale"].iloc[0]
+    
+    return metrics
+
+
 def compute_cagr(series: pd.Series, years: int = 3) -> float:
     s = series.dropna().sort_index()
     if len(s) < years + 1:
