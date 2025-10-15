@@ -5,4 +5,7 @@ vnstock>=3.2.6
 requests>=2.25.0
 beautifulsoup4>=4.9.0
 lxml>=4.6.0
+plotly>=5.0.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
 
